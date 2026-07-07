@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>瓦楞纸箱材料成本手机计算器 v3</title>
+<style>
+:root{
+  --bg:#f3f5f7;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
+  --black:#111827;--green:#0f766e;--red:#b91c1c;--orange:#c2410c;--blue:#1d4ed8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.45}
+.wrap{max-width:920px;margin:0 auto;padding:12px 10px 36px}
+header{padding:8px 2px 10px}
+h1{font-size:22px;margin:0 0 5px;font-weight:950;letter-spacing:0}
+h2{font-size:17px;margin:0 0 10px;font-weight:950}
+.sub{font-size:13px;color:var(--muted)}
+.pill{font-size:12px;background:#ecfeff;color:#155e75;border-radius:999px;padding:3px 8px;font-weight:900;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:11px 0;box-shadow:0 1px 2px rgba(0,0,0,.035)}
+.result{background:linear-gradient(135deg,#0f766e,#111827);color:#fff;border:0}
+.label2{font-size:14px;opacity:.9;font-weight:800}
+.big{font-size:38px;font-weight:950;letter-spacing:0;margin:2px 0;line-height:1.1}
+.small{font-size:13px;opacity:.9}
+.quickStats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px}
+.stat .k{color:rgba(255,255,255,.78);font-size:12px}
+.stat .v{color:#fff;text-align:left;font-size:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+label{display:block;font-size:13px;color:#374151;margin:0 0 5px;font-weight:850}
+input,select,textarea{width:100%;border:1px solid #d1d5db;border-radius:12px;background:#fff;color:#111827;outline:none}
+input,select{height:50px;font-size:18px;padding:9px 11px}
+textarea{min-height:210px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:10px}
+input:focus,select:focus,textarea:focus{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.09)}
+button{height:48px;border:0;border-radius:13px;font-size:15px;font-weight:950;cursor:pointer}
+.primary{background:var(--black);color:white}
+.secondary{background:#e5e7eb;color:#111827}
+.accent{background:var(--green);color:white}
+.dangerBtn{background:#fee2e2;color:#991b1b}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}
+.btnrow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-flex;align-items:center;border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:9px 12px;font-size:13px;color:#374151;font-weight:850;cursor:pointer}
+.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed #e5e7eb;padding:9px 0;font-size:15px}
+.row:last-child{border-bottom:0}
+.k{color:#6b7280}
+.v{font-weight:950;text-align:right}
+.warn{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:12px;padding:10px;font-size:14px;margin-top:9px}
+.bad{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+.ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#14532d;border-radius:12px;padding:10px;font-size:14px;margin-top:9px}
+pre{white-space:pre-wrap;word-break:break-word;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:10px;font-size:13px;line-height:1.55;margin:8px 0 0}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.tabs button{height:42px}
+.on{background:#111827;color:#fff}
+.off{background:#e5e7eb;color:#111827}
+.hint{font-size:12px;color:#6b7280;margin-top:7px}
+.tableWrap{max-height:360px;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;margin-top:10px}
+table{width:100%;border-collapse:collapse;background:white;font-size:13px}
+th,td{border-bottom:1px solid #e5e7eb;padding:8px;text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:#f9fafb;z-index:1}
+.mini{height:38px;font-size:14px;padding:5px 8px;border-radius:9px}
+.right{text-align:right}
+.selectedRow{background:#ecfdf5}
+.footer{font-size:12px;color:#6b7280;text-align:center;margin-top:18px}
+.hide{display:none}
+@media(max-width:560px){
+  .wrap{padding:10px 9px 30px}
+  .grid,.grid3,.btnrow,.btnrow3,.tabs,.quickStats{grid-template-columns:1fr}
+  .big{font-size:34px}
+  input,select{font-size:18px}
+  h1{font-size:21px}
+  .row{font-size:14px}
+  .tableWrap{max-height:310px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>瓦楞纸箱材料成本手机计算器 <span class="pill">v3 全表+可维护</span></h1>
+  <div class="sub">输入层数、纸质代码、长宽高，自动计算纸板㎡单价、净宽、净长、毛宽、毛长和材料成本。</div>
+</header>
+
+<section class="card">
+  <div class="grid">
+    <div>
+      <label for="layers">纸箱层数</label>
+      <select id="layers">
+        <option value="5">五层</option>
+        <option value="3">三层</option>
+        <option value="7">七层（按五层逻辑暂算，需复核）</option>
+      </select>
+    </div>
+    <div>
+      <label for="paperCode">纸质代码</label>
+      <input id="paperCode" type="text" placeholder="如 N636tN" autocomplete="off" />
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:10px">
+    <div><label for="L">长 L / mm</label><input id="L" type="number" inputmode="numeric" step="1" placeholder="300" /></div>
+    <div><label for="W">宽 W / mm</label><input id="W" type="number" inputmode="numeric" step="1" placeholder="115" /></div>
+    <div><label for="H">高 H / mm</label><input id="H" type="number" inputmode="numeric" step="1" placeholder="265" /></div>
+  </div>
+  <div class="grid" style="margin-top:10px">
+    <div><label for="qty">数量，可选</label><input id="qty" type="number" inputmode="numeric" step="1" placeholder="如 1000" /></div>
+    <div><label for="manualPrice">手动覆盖纸板㎡单价，可选</label><input id="manualPrice" type="number" inputmode="decimal" step="0.01" placeholder="留空则自动算" /></div>
+  </div>
+  <div class="btnrow"><button class="primary" id="calcBtn">立即计算</button><button class="secondary" id="copyBtn">复制结果</button></div>
+  <div class="chips">
+    <span class="chip" id="demo1">填入样例 1：N636tN</span>
+    <span class="chip" id="demo2">填入样例 2：N526N</span>
+    <span class="chip" id="clearBtn">清空</span>
+  </div>
+</section>
+
+<section class="card result">
+  <div class="label2">单个材料成本</div>
+  <div class="big" id="unitCost">—</div>
+  <div class="small" id="resultSub">输入后点击“立即计算”</div>
+  <div class="quickStats">
+    <div class="stat"><div class="k">纸板㎡单价</div><div class="v" id="quickPrice">—</div></div>
+    <div class="stat"><div class="k">两位参考</div><div class="v" id="quickRounded">—</div></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>计算结果</h2>
+  <div id="summaryRows"><div class="row"><span class="k">状态</span><span class="v">等待计算</span></div></div>
+  <div id="warnings"></div>
+</section>
+
+<section class="card">
+  <h2>候选拼版方案</h2>
+  <div class="tableWrap"><table><thead><tr><th>x</th><th class="right">需求门幅</th><th class="right">实际门幅</th><th class="right">毛宽</th><th class="right">状态</th></tr></thead><tbody id="planTable"><tr><td colspan="5">暂无</td></tr></tbody></table></div>
+</section>
+
+<section class="card">
+  <h2>完整计算过程</h2>
+  <pre id="detail">暂无。</pre>
+</section>
+
+<section class="card">
+  <h2>数据维护</h2>
+  <div class="tabs"><button id="tabBase" class="on" type="button">基础型号单价</button><button id="tabRules" class="off" type="button">改材加价规则</button></div>
+
+  <div id="basePanel">
+    <div class="grid3">
+      <div><label for="baseCodeInput">型号</label><input id="baseCodeInput" class="mini" placeholder="如 N323N" /></div>
+      <div><label for="basePriceInput">纸板㎡单价</label><input id="basePriceInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="2.55" /></div>
+      <div><label>&nbsp;</label><button class="accent" id="addBaseBtn" type="button">添加/更新</button></div>
+    </div>
+    <input id="baseSearch" class="mini" style="margin-top:10px" placeholder="搜索型号，如 N323、K1、F636" />
+    <div class="tableWrap"><table><thead><tr><th>型号</th><th class="right">元/㎡</th><th class="right">操作</th></tr></thead><tbody id="baseTable"></tbody></table></div>
+    <div class="btnrow3"><button class="secondary" id="saveBaseBtn" type="button">保存数据</button><button class="secondary" id="exportBaseBtn" type="button">导出 JSON</button><button class="secondary" id="importBaseBtn" type="button">导入 JSON</button></div>
+    <div class="btnrow"><button class="dangerBtn" id="resetBaseBtn" type="button">恢复默认</button><button class="secondary" id="showBaseBtn" type="button">查看全部 JSON</button></div>
+    <div class="hint">所有修改都会保存到本机浏览器 localStorage。更换手机或清理浏览器数据后，需要重新导入 JSON。</div>
+  </div>
+
+  <div id="rulesPanel" class="hide">
+    <div class="grid3">
+      <div><label for="ruleFromInput">原代码</label><input id="ruleFromInput" class="mini" placeholder="如 3" /></div>
+      <div><label for="ruleToInput">改为</label><input id="ruleToInput" class="mini" placeholder="如 6t" /></div>
+      <div><label for="rulePriceInput">加价 元/㎡</label><input id="rulePriceInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.26" /></div>
+    </div>
+    <div class="btnrow"><button class="accent" id="addRuleBtn" type="button">添加/更新规则</button><button class="secondary" id="saveRulesBtn" type="button">保存数据</button></div>
+    <div class="tableWrap"><table><thead><tr><th>改法</th><th class="right">加价</th><th class="right">操作</th></tr></thead><tbody id="rulesTable"></tbody></table></div>
+    <div class="btnrow3"><button class="secondary" id="exportRulesBtn" type="button">导出 JSON</button><button class="secondary" id="importRulesBtn" type="button">导入 JSON</button><button class="secondary" id="showRulesBtn" type="button">查看全部 JSON</button></div>
+    <div class="btnrow"><button class="dangerBtn" id="resetRulesBtn" type="button">恢复默认规则</button></div>
+  </div>
+</section>
+
+<div class="footer">材料成本 = 毛宽 × 毛长 ÷ 1000000 × 纸板㎡单价 × 0.97。当前只代表纸板材料成本，不含印刷、粘箱、钉箱、运费、税点、利润。</div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const WIDTH_MIN=1300, WIDTH_MAX=2500, WIDTH_STEP=50, TRIM=25, DISCOUNT=0.97;
+const TOKEN_PATTERNS=["K1","H1","F2","6b","6t","B","D","A","K","P","Q","N","H","F","W","T","M","2","3","5","6","8"];
+const INPUT_IDS=["layers","paperCode","L","W","H","qty","manualPrice"];
+const DEFAULT_BASE_PRICES={
+  "3B":0.79,"3D":0.85,"3A":0.90,"3K1":0.95,"3N":1.14,"3W":1.24,
+  "333":1.13,"B33":1.14,"B3B":1.15,"D3B":1.21,
+  "D3D":1.27,"A3B":1.26,"A3D":1.32,"A3A":1.37,"K13D":1.38,"K13B":1.32,"K13A":1.43,"K13K1":1.48,"N3A":1.61,"N3K1":1.67,"N3N":1.85,
+  "W33":1.48,"W3B":1.49,"W3D":1.55,"W3A":1.59,"W3K1":1.65,"W3N":1.84,"323B":1.60,"323D":1.66,"323A":1.71,"323K1":1.77,
+  "323N":1.95,"23232":1.76,"B3232":1.78,"B323B":1.82,"D323B":1.88,"D323D":1.94,"A323B":1.93,"A323D":1.99,"A323A":2.04,"K1323B":1.99,"K1323D":2.05,
+  "K1323A":2.10,"K1323K1":2.16,"N323A":2.31,"N323K1":2.36,"N323N":2.55,"W323B":2.18,"W323D":2.24,"W323A":2.29,"W323K1":2.35,
+  "K133333A":3.68,"K133335K1":3.84,"K33535K1":4.03,"K53535K":4.23,"N53536K":4.42,"F53636N":4.91,"F63636F":5.40
+};
+const DEFAULT_RULES={
+  "2>3":0.04,"2>5":0.10,"2>6":0.17,"2>8":0.28,"2>K1":0.21,"2>N":0.40,
+  "3>5":0.10,"3>6b":0.15,"3>6":0.19,"3>6t":0.26,"3>8":0.35,
+  "K1>K":0.10,"K1>P":0.04,"K1>Q":0.15,
+  "N>H":0.09,"N>H1":0.19,"N>F":0.31,"N>F2":0.46,"N>M":0.33,"N>T":0.36
+};
+let lastText="";
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+}
+function fmt(n,d=2){
+  return Number.isFinite(n)?Number(n).toFixed(d).replace(/\.00$/,""):"—";
+}
+function fixed(n,d){
+  return Number.isFinite(n)?Number(n).toFixed(d):"—";
+}
+function money3(n){
+  return Number.isFinite(n)?Number(n).toFixed(3):"—";
+}
+function num(id){
+  const v=parseFloat($(id).value);
+  return Number.isFinite(v)?v:NaN;
+}
+function getJSON(key,def,validator){
+  try{
+    const s=localStorage.getItem(key);
+    if(!s)return {...def};
+    const data=JSON.parse(s);
+    return validator(data).ok?data:{...def};
+  }catch(e){
+    return {...def};
+  }
+}
+function setJSON(key,obj){
+  localStorage.setItem(key,JSON.stringify(obj));
+}
+function validatePriceMap(obj){
+  if(!obj||Array.isArray(obj)||typeof obj!=="object")return {ok:false,msg:"JSON 必须是对象"};
+  for(const [k,v] of Object.entries(obj)){
+    const parsed=parseCode(k);
+    const price=Number(v);
+    if(!parsed.ok)return {ok:false,msg:`型号 ${k} 无法识别：${parsed.error}`};
+    if(!Number.isFinite(price)||price<=0)return {ok:false,msg:`型号 ${k} 的单价必须大于 0`};
+  }
+  return {ok:true};
+}
+function validateRuleMap(obj){
+  if(!obj||Array.isArray(obj)||typeof obj!=="object")return {ok:false,msg:"JSON 必须是对象"};
+  for(const [k,v] of Object.entries(obj)){
+    const parts=String(k).split(">");
+    if(parts.length!==2)return {ok:false,msg:`规则 ${k} 格式应为 原代码>目标代码`};
+    const from=canonicalToken(parts[0]), to=canonicalToken(parts[1]);
+    if(!from||!to||!TOKEN_PATTERNS.some(p=>p.toLowerCase()===from.toLowerCase())||!TOKEN_PATTERNS.some(p=>p.toLowerCase()===to.toLowerCase())){
+      return {ok:false,msg:`规则 ${k} 中存在无法识别的代码`};
+    }
+    const add=Number(v);
+    if(!Number.isFinite(add)||add<0)return {ok:false,msg:`规则 ${k} 的加价必须大于等于 0`};
+  }
+  return {ok:true};
+}
+function basePrices(){
+  return getJSON("carton_v3_base_prices",DEFAULT_BASE_PRICES,validatePriceMap);
+}
+function rules(){
+  return getJSON("carton_v3_rules",DEFAULT_RULES,validateRuleMap);
+}
+function canonicalToken(t){
+  if(!t)return "";
+  const s=String(t).trim();
+  const low=s.toLowerCase();
+  if(low==="6t")return "6t";
+  if(low==="6b")return "6b";
+  const up=s.toUpperCase().replace("１","1");
+  if(up==="K1")return "K1";
+  return up;
+}
+function normalizeCode(code){
+  return String(code||"").trim().replace(/\s+/g,"").replace(/[ｔＴ]/g,"t").replace(/[ｂＢ]/g,"b").replace(/[Ａ-Ｚａ-ｚ０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-65248));
+}
+function parseCode(code){
+  const raw=normalizeCode(code);
+  let i=0,tokens=[];
+  while(i<raw.length){
+    let match=null;
+    for(const p of TOKEN_PATTERNS){
+      const part=raw.slice(i,i+p.length);
+      if(part.toLowerCase()===p.toLowerCase()){match=p;break;}
+    }
+    if(!match)return {ok:false,raw,tokens,error:`无法识别代码片段：${raw.slice(i)}`};
+    tokens.push(canonicalToken(match));
+    i+=match.length;
+  }
+  return {ok:true,raw,tokens,code:tokens.join("")};
+}
+function changeCost(from,to,ruleMap){
+  from=canonicalToken(from);to=canonicalToken(to);
+  if(from===to)return {ok:true,add:0,text:`${from} 不变`,rule:`${from}>${to}`};
+  const key=from+">"+to;
+  if(Object.prototype.hasOwnProperty.call(ruleMap,key)){
+    const add=Number(ruleMap[key]);
+    return {ok:true,add,text:`${from} 改 ${to}：规则 ${key}，+${fmt(add,2)} 元/㎡`,rule:key};
+  }
+  return {ok:false,add:0,text:`缺少加价规则：${from} 改 ${to}`,rule:key};
+}
+function derivePrice(code,layers){
+  const parsed=parseCode(code);
+  const prices=basePrices();
+  const ruleMap=rules();
+  if(!parsed.ok){
+    return {ok:false,price:NaN,status:"识别失败",detail:parsed.error,warnings:[parsed.error]};
+  }
+  if(Object.prototype.hasOwnProperty.call(prices,parsed.code)){
+    const price=Number(prices[parsed.code]);
+    return {
+      ok:true,price,status:`直接表价 ${fmt(price,2)}`,tokens:parsed.tokens,method:"direct",
+      detail:[
+        "【纸板㎡单价】",
+        `纸质代码：${parsed.code}`,
+        `目标型号拆解：${parsed.tokens.join(" / ")}`,
+        `基础报价表中有直接单价：${fmt(price,2)} 元/㎡`
+      ].join("\n")
+    };
+  }
+
+  const target=parsed.tokens;
+  const len=target.length;
+  const expected={3:3,5:5,7:7}[layers];
+  const warnings=[];
+  if(expected&&len!==expected)warnings.push(`${layers}层通常应为 ${expected} 段，当前拆为 ${len} 段：${target.join(" / ")}`);
+
+  const candidates=[];
+  const missingRules=new Set();
+  for(const [baseCode,basePriceRaw] of Object.entries(prices)){
+    const basePrice=Number(basePriceRaw);
+    const base=parseCode(baseCode);
+    if(!Number.isFinite(basePrice)||!base.ok||base.tokens.length!==len)continue;
+    let add=0,changes=0,match=0,edge=0,steps=[],ok=true;
+    for(let i=0;i<len;i++){
+      if(base.tokens[i]===target[i]){
+        match++;
+        continue;
+      }
+      const r=changeCost(base.tokens[i],target[i],ruleMap);
+      if(!r.ok){
+        missingRules.add(r.rule);
+        ok=false;
+        break;
+      }
+      add+=r.add;
+      changes++;
+      steps.push(r);
+    }
+    if(ok){
+      edge=(base.tokens[0]===target[0]?1:0)+(base.tokens[len-1]===target[len-1]?1:0);
+      candidates.push({baseCode:base.code,baseTokens:base.tokens,basePrice,add,final:basePrice+add,changes,match,edge,steps});
+    }
+  }
+  candidates.sort((a,b)=>b.edge-a.edge||b.match-a.match||a.changes-b.changes||a.final-b.final);
+  if(!candidates.length){
+    const detail=[
+      "【纸板㎡单价】",
+      `纸质代码：${parsed.code}`,
+      `目标型号拆解：${target.join(" / ")}`,
+      "没有找到可用基础型号和完整加价规则，不能自动乱算。",
+      missingRules.size?`可能缺少规则：${Array.from(missingRules).join("，")}`:"",
+      "请手动输入纸板㎡单价，或在数据维护中补充基础型号单价/加价规则。"
+    ].filter(Boolean).join("\n");
+    return {ok:false,price:NaN,status:"需补充数据",detail,warnings:[`无法自动计算 ${parsed.code} 的纸板㎡单价，请手动输入或补充数据。`].concat(warnings),tokens:target};
+  }
+
+  const c=candidates[0];
+  const alt=candidates.slice(1,4).map(x=>`${x.baseCode} → ${fmt(x.final,2)} 元/㎡`).join("；");
+  const priceFormula=[fmt(c.basePrice,2)].concat(c.steps.map(s=>fmt(s.add,2))).join(" + ");
+  const detail=[
+    "【纸板㎡单价】",
+    `纸质代码：${parsed.code}`,
+    `目标型号拆解：${target.join(" / ")}`,
+    `选择基础型号：${c.baseCode}`,
+    `基础型号拆解：${c.baseTokens.join(" / ")}`,
+    `基础型号价格：${fmt(c.basePrice,2)} 元/㎡`,
+    c.steps.length?c.steps.map(s=>s.text).join("\n"):"无改材加价",
+    `纸板㎡单价 = ${priceFormula} = ${fmt(c.final,2)} 元/㎡`,
+    alt?`备选推算：${alt}`:""
+  ].filter(Boolean).join("\n");
+  warnings.push("纸板㎡单价为自动推算值，请用真实纸厂报价核对；直接表价优先级高于推算值。");
+  return {ok:true,price:c.final,status:`自动推算 ${fmt(c.final,2)}`,detail,tokens:target,baseCode:c.baseCode,warnings};
+}
+function layerRule(layers,W){
+  const odd=Math.round(W)%2!==0;
+  if(layers===3)return {n:odd?3:2,glue:25,label:"三层",odd,assumption:""};
+  if(layers===5)return {n:odd?5:4,glue:30,label:"五层",odd,assumption:""};
+  return {n:odd?5:4,glue:30,label:"七层",odd,assumption:"七层净宽/净长规则暂按五层逻辑或人工确认规则处理，请报价前复核。"};
+}
+function ceilStep(v){
+  return Math.ceil(v/WIDTH_STEP)*WIDTH_STEP;
+}
+function actualWeb(demand){
+  return Math.max(WIDTH_MIN,ceilStep(demand));
+}
+function bestWidth(netWidth){
+  const plans=[];
+  for(let x=1;x<=80;x++){
+    const demand=x*netWidth+TRIM;
+    if(demand>WIDTH_MAX)break;
+    const web=actualWeb(demand);
+    plans.push({x,demand,web,gross:web/x,selected:false});
+  }
+  plans.sort((a,b)=>b.web-a.web||b.x-a.x);
+  if(plans[0])plans[0].selected=true;
+  return {plans,best:plans[0]||null};
+}
+function renderRows(rows){
+  $("summaryRows").innerHTML=rows.map(r=>`<div class="row"><span class="k">${escapeHtml(r[0])}</span><span class="v">${escapeHtml(r[1])}</span></div>`).join("");
+}
+function renderWarnings(warnings,bad=false){
+  if(!warnings.length){
+    $("warnings").innerHTML='<div class="ok">未发现尺寸范围风险。当前结果只代表纸板材料成本。</div>';
+    return;
+  }
+  $("warnings").innerHTML=warnings.map(w=>`<div class="warn ${bad?"bad":""}">${escapeHtml(w)}</div>`).join("");
+}
+function renderPlanTable(plans){
+  if(!plans.length){
+    $("planTable").innerHTML='<tr><td colspan="5">没有可行拼版方案</td></tr>';
+    return;
+  }
+  $("planTable").innerHTML=plans.map(p=>`<tr class="${p.selected?"selectedRow":""}"><td>${p.x}</td><td class="right">${fmt(p.demand,0)}mm</td><td class="right">${fmt(p.web,0)}mm</td><td class="right">${fixed(p.gross,2)}mm</td><td class="right">${p.selected?"选中":"候选"}</td></tr>`).join("");
+}
+function calculate(){
+  const layers=parseInt($("layers").value,10);
+  const L=num("L"),W=num("W"),H=num("H"),qty=num("qty"),manual=num("manualPrice");
+  const inputCode=$("paperCode").value.trim();
+  const errors=[];
+  if(!inputCode)errors.push("请填写纸质代码。");
+  if(!Number.isFinite(L)||L<=0)errors.push("请填写正确的长 L。");
+  if(!Number.isFinite(W)||W<=0)errors.push("请填写正确的宽 W。");
+  if(!Number.isFinite(H)||H<=0)errors.push("请填写正确的高 H。");
+  if(errors.length){
+    $("unitCost").textContent="—";
+    $("quickPrice").textContent="—";
+    $("quickRounded").textContent="—";
+    $("resultSub").textContent="输入不完整";
+    renderRows([["状态","无法计算"]]);
+    renderPlanTable([]);
+    renderWarnings(errors,true);
+    $("detail").textContent=errors.join("\n");
+    lastText=$("detail").textContent;
+    return;
+  }
+
+  const code=parseCode(inputCode).ok?parseCode(inputCode).code:normalizeCode(inputCode);
+  const auto=derivePrice(inputCode,layers);
+  let price=auto.price;
+  let priceNote=auto.status;
+  const warnings=[...(auto.warnings||[])];
+  if(Number.isFinite(manual)&&manual>0){
+    price=manual;
+    priceNote=`手动覆盖 ${fmt(price,2)}`;
+    warnings.push("当前使用手动覆盖纸板㎡单价，自动识别结果只作为参考。");
+  }
+  if(!Number.isFinite(price)||price<=0){
+    $("unitCost").textContent="—";
+    $("quickPrice").textContent="—";
+    $("quickRounded").textContent="—";
+    $("resultSub").textContent="纸板㎡单价未知";
+    renderRows([["纸质代码",code],["自动状态",auto.status],["处理方式","请手动输入纸板㎡单价或补充数据"]]);
+    renderPlanTable([]);
+    renderWarnings(warnings.length?warnings:["纸板㎡单价未知。"],true);
+    $("detail").textContent=auto.detail;
+    lastText=$("detail").textContent;
+    saveInputs();
+    return;
+  }
+
+  const lr=layerRule(layers,W);
+  const netW=W+H+lr.n;
+  const netL=2*(L+W)+lr.glue;
+  const half=(W+lr.n)/2;
+  const widthPlans=bestWidth(netW);
+  if(!widthPlans.best){
+    $("unitCost").textContent="—";
+    $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
+    $("quickRounded").textContent="—";
+    $("resultSub").textContent="净宽过大";
+    renderRows([["纸质代码",code],["纸板㎡单价",`${fmt(price,2)} 元/㎡`],["净宽",`${fmt(netW,0)}mm`],["状态","无法拼版"]]);
+    renderPlanTable([]);
+    renderWarnings(["净宽过大，在 2500mm 门幅内无法拼版。"].concat(warnings),true);
+    $("detail").textContent=auto.detail;
+    lastText=$("detail").textContent;
+    saveInputs();
+    return;
+  }
+
+  const best=widthPlans.best;
+  const grossW=best.gross;
+  const grossWForCalc=Number(grossW.toFixed(2));
+  const grossL=netL;
+  const area=grossWForCalc*grossL/1000000;
+  const unit=area*price*DISCOUNT;
+  const qtyInt=Number.isFinite(qty)&&qty>0?Math.round(qty):NaN;
+  const total=Number.isFinite(qtyInt)?unit*qtyInt:NaN;
+  if(lr.assumption)warnings.push(lr.assumption);
+  if(grossL<600)warnings.push("毛长低于 600mm，可能需要按最低长度或特殊规则处理，请向纸厂确认。");
+  if(grossL>3500)warnings.push("毛长超过 3500mm，可能超出常规生产范围，请向纸厂确认。");
+
+  $("unitCost").textContent=`${money3(unit)} 元/个`;
+  $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
+  $("quickRounded").textContent=`${fixed(unit,2)} 元/个`;
+  $("resultSub").textContent=`${lr.label}｜${code}｜${priceNote}`;
+  renderRows([
+    ["纸质代码",code],
+    ["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],
+    ["净宽",`${fmt(netW,0)}mm`],
+    ["净长",`${fmt(netL,0)}mm`],
+    ["半盖宽",`${fmt(half,2)}mm`],
+    ["拼版数量 x",String(best.x)],
+    ["实际门幅",`${fmt(best.web,0)}mm`],
+    ["毛宽",`${fixed(grossW,2)}mm`],
+    ["毛长",`${fmt(grossL,0)}mm`],
+    ["单个计价面积",`${fixed(area,5)}㎡`],
+    ["单个材料成本",`${money3(unit)} 元/个`],
+    ["两位参考",`${fixed(unit,2)} 元/个`],
+    ["总材料成本",Number.isFinite(total)?`${fixed(total,2)} 元`:"—"]
+  ]);
+  renderPlanTable(widthPlans.plans);
+  renderWarnings(warnings);
+
+  const planText=widthPlans.plans.map(p=>`x=${p.x}：需求门幅 ${fmt(p.demand,0)}mm，实际门幅 ${fmt(p.web,0)}mm，毛宽 ${fixed(p.gross,2)}mm，${p.selected?"选中":"候选"}`).join("\n");
+  const detail=[
+    "【核心结果】",
+    `纸质代码：${code}`,
+    `纸板㎡单价：${fmt(price,2)} 元/㎡`,
+    `单个材料成本：${money3(unit)} 元/个`,
+    `两位参考：${fixed(unit,2)} 元/个`,
+    `数量：${Number.isFinite(qtyInt)?qtyInt:"未填"}`,
+    `总材料成本：${Number.isFinite(total)?fixed(total,2)+" 元":"—"}`,
+    "",
+    auto.detail,
+    "",
+    "【尺寸计算】",
+    `层数：${lr.label}`,
+    `W = ${W}，为${lr.odd?"奇数":"偶数"}，n = ${lr.n}`,
+    `净宽 = ${W} + ${H} + ${lr.n} = ${fmt(netW,0)}mm`,
+    `净长 = 2 × (${L} + ${W}) + ${lr.glue} = ${fmt(netL,0)}mm`,
+    `半盖宽 = (${W} + ${lr.n}) ÷ 2 = ${fmt(half,2)}mm`,
+    `压线结构 = ${fmt(half,2)} + ${H} + ${fmt(half,2)}`,
+    lr.assumption,
+    "",
+    "【拼版计算】",
+    "纸厂原则：优先选择最靠近 2500mm 的最大可行门幅；实际门幅向上取 50mm 档位；同门幅优先 x 更大。",
+    planText,
+    `最终拼版 x = ${best.x}`,
+    `需求门幅 = ${best.x} × ${fmt(netW,0)} + ${TRIM} = ${fmt(best.demand,0)}mm`,
+    `实际门幅 = ${fmt(best.web,0)}mm`,
+    `毛宽 = ${fmt(best.web,0)} ÷ ${best.x} = ${fixed(grossW,2)}mm`,
+    `毛长 = 净长 = ${fmt(grossL,0)}mm`,
+    "",
+    "【计价面积】",
+    `面积 = ${fixed(grossW,2)} × ${fmt(grossL,0)} ÷ 1000000 = ${fixed(area,5)}㎡`,
+    "",
+    "【材料成本】",
+    `成本 = ${fixed(area,5)} × ${fmt(price,2)} × ${DISCOUNT} = ${money3(unit)} 元/个`,
+    Number.isFinite(total)?`总材料成本 = ${money3(unit)} × ${qtyInt} = ${fixed(total,2)} 元`:"",
+    warnings.length?`\n【风险提示】\n${warnings.join("\n")}`:""
+  ].filter(line=>line!==undefined&&line!==null).join("\n");
+  $("detail").textContent=detail;
+  lastText=detail;
+  saveInputs();
+}
+function saveInputs(){
+  INPUT_IDS.forEach(id=>localStorage.setItem("carton_v3_"+id,$(id).value));
+}
+function loadInputs(){
+  INPUT_IDS.forEach(id=>{
+    const v=localStorage.getItem("carton_v3_"+id);
+    if(v!==null)$(id).value=v;
+  });
+}
+function renderBaseTable(){
+  const q=($("baseSearch").value||"").trim().toUpperCase();
+  const data=basePrices();
+  const rows=Object.entries(data)
+    .sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true}))
+    .filter(([k])=>!q||k.toUpperCase().includes(q))
+    .map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td class="right">${fmt(Number(v),2)}</td><td class="right"><button class="mini secondary" data-edit-base="${escapeHtml(k)}">编辑</button> <button class="mini dangerBtn" data-del-base="${escapeHtml(k)}">删</button></td></tr>`)
+    .join("");
+  $("baseTable").innerHTML=rows||'<tr><td colspan="3">没有数据</td></tr>';
+}
+function renderRulesTable(){
+  const data=rules();
+  const rows=Object.entries(data)
+    .sort((a,b)=>a[0].localeCompare(b[0]))
+    .map(([k,v])=>`<tr><td>${escapeHtml(k.replace(">"," 改 "))}</td><td class="right">${fmt(Number(v),2)}</td><td class="right"><button class="mini secondary" data-edit-rule="${escapeHtml(k)}">编辑</button> <button class="mini dangerBtn" data-del-rule="${escapeHtml(k)}">删</button></td></tr>`)
+    .join("");
+  $("rulesTable").innerHTML=rows||'<tr><td colspan="3">没有数据</td></tr>';
+}
+function addBase(){
+  const parsed=parseCode($("baseCodeInput").value);
+  const price=Number($("basePriceInput").value);
+  if(!parsed.ok||!Number.isFinite(price)||price<=0){
+    alert("请填写正确的型号和纸板㎡单价");
+    return;
+  }
+  const data=basePrices();
+  data[parsed.code]=price;
+  setJSON("carton_v3_base_prices",data);
+  renderBaseTable();
+  alert(`已保存：${parsed.code} = ${price}`);
+}
+function addRule(){
+  const from=canonicalToken($("ruleFromInput").value);
+  const to=canonicalToken($("ruleToInput").value);
+  const price=Number($("rulePriceInput").value);
+  const validToken=t=>TOKEN_PATTERNS.some(p=>p.toLowerCase()===String(t).toLowerCase());
+  if(!validToken(from)||!validToken(to)||!Number.isFinite(price)||price<0){
+    alert("请填写正确的改材规则和加价");
+    return;
+  }
+  const data=rules();
+  data[from+">"+to]=price;
+  setJSON("carton_v3_rules",data);
+  renderRulesTable();
+  alert(`已保存规则：${from} 改 ${to} = ${price}`);
+}
+function importObj(key,title,validator,after){
+  const input=prompt(`${title}：粘贴 JSON 后点确定导入。`,JSON.stringify(key==="carton_v3_base_prices"?basePrices():rules(),null,2));
+  if(input===null)return;
+  try{
+    const data=JSON.parse(input);
+    const v=validator(data);
+    if(!v.ok){alert("导入失败："+v.msg);return;}
+    setJSON(key,data);
+    after();
+    alert("导入成功");
+  }catch(e){
+    alert("JSON 格式错误："+e.message);
+  }
+}
+function exportObj(obj,title){
+  prompt(`${title}：复制以下 JSON 保存。`,JSON.stringify(obj,null,2));
+}
+function showObj(obj,title){
+  prompt(`${title}：可复制查看。`,JSON.stringify(obj,null,2));
+}
+
+$("calcBtn").onclick=calculate;
+$("copyBtn").onclick=async()=>{
+  if(!lastText)calculate();
+  try{
+    await navigator.clipboard.writeText(lastText||$("detail").textContent);
+    alert("已复制");
+  }catch(e){
+    alert("复制失败，可手动长按复制完整计算过程。");
+  }
+};
+$("demo1").onclick=()=>{$("layers").value="5";$("paperCode").value="N636tN";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
+$("demo2").onclick=()=>{$("layers").value="5";$("paperCode").value="N526N";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
+$("clearBtn").onclick=()=>{
+  ["paperCode","L","W","H","qty","manualPrice"].forEach(id=>$(id).value="");
+  $("unitCost").textContent="—";$("quickPrice").textContent="—";$("quickRounded").textContent="—";$("resultSub").textContent="已清空";
+  $("detail").textContent="暂无。";lastText="";
+  renderRows([["状态","等待计算"]]);renderWarnings([]);renderPlanTable([]);saveInputs();
+};
+$("tabBase").onclick=()=>{$("basePanel").classList.remove("hide");$("rulesPanel").classList.add("hide");$("tabBase").className="on";$("tabRules").className="off";};
+$("tabRules").onclick=()=>{$("basePanel").classList.add("hide");$("rulesPanel").classList.remove("hide");$("tabBase").className="off";$("tabRules").className="on";};
+$("addBaseBtn").onclick=addBase;
+$("addRuleBtn").onclick=addRule;
+$("baseSearch").oninput=renderBaseTable;
+$("saveBaseBtn").onclick=()=>{setJSON("carton_v3_base_prices",basePrices());alert("基础型号单价已保存");};
+$("saveRulesBtn").onclick=()=>{setJSON("carton_v3_rules",rules());alert("改材加价规则已保存");};
+$("resetBaseBtn").onclick=()=>{if(confirm("确定恢复默认基础报价表？当前修改会被覆盖。")){setJSON("carton_v3_base_prices",DEFAULT_BASE_PRICES);renderBaseTable();}};
+$("resetRulesBtn").onclick=()=>{if(confirm("确定恢复默认加价规则？当前修改会被覆盖。")){setJSON("carton_v3_rules",DEFAULT_RULES);renderRulesTable();}};
+$("exportBaseBtn").onclick=()=>exportObj(basePrices(),"基础型号单价 JSON");
+$("importBaseBtn").onclick=()=>importObj("carton_v3_base_prices","基础型号单价 JSON",validatePriceMap,renderBaseTable);
+$("showBaseBtn").onclick=()=>showObj(basePrices(),"基础型号单价 JSON");
+$("exportRulesBtn").onclick=()=>exportObj(rules(),"改材加价规则 JSON");
+$("importRulesBtn").onclick=()=>importObj("carton_v3_rules","改材加价规则 JSON",validateRuleMap,renderRulesTable);
+$("showRulesBtn").onclick=()=>showObj(rules(),"改材加价规则 JSON");
+document.addEventListener("click",e=>{
+  const editBase=e.target.getAttribute("data-edit-base");
+  if(editBase){
+    $("baseCodeInput").value=editBase;
+    $("basePriceInput").value=basePrices()[editBase];
+    window.scrollTo({top:$("basePanel").offsetTop-20,behavior:"smooth"});
+  }
+  const delBase=e.target.getAttribute("data-del-base");
+  if(delBase&&confirm(`删除基础型号 ${delBase}？`)){
+    const data=basePrices();
+    delete data[delBase];
+    setJSON("carton_v3_base_prices",data);
+    renderBaseTable();
+  }
+  const editRule=e.target.getAttribute("data-edit-rule");
+  if(editRule){
+    const [from,to]=editRule.split(">");
+    $("ruleFromInput").value=from;
+    $("ruleToInput").value=to;
+    $("rulePriceInput").value=rules()[editRule];
+  }
+  const delRule=e.target.getAttribute("data-del-rule");
+  if(delRule&&confirm(`删除规则 ${delRule}？`)){
+    const data=rules();
+    delete data[delRule];
+    setJSON("carton_v3_rules",data);
+    renderRulesTable();
+  }
+});
+INPUT_IDS.forEach(id=>{
+  $(id).addEventListener("change",saveInputs);
+  $(id).addEventListener("input",saveInputs);
+});
+loadInputs();
+renderBaseTable();
+renderRulesTable();
+renderWarnings([]);
+})();
+</script>
+</body>
+</html>
