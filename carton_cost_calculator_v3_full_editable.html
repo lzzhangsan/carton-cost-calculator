@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>瓦楞纸箱材料成本手机计算器 v3</title>
+<title>瓦楞纸箱材料成本计算器</title>
 <style>
 :root{
   --bg:#f3f5f7;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
@@ -78,8 +78,8 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
 <body>
 <div class="wrap">
 <header>
-  <h1>瓦楞纸箱材料成本手机计算器 <span class="pill">v3 全表+可维护</span></h1>
-  <div class="sub">输入层数、纸质代码、长宽高，自动计算纸板㎡单价、净宽、净长、毛宽、毛长和材料成本。</div>
+  <h1>瓦楞纸箱材料成本计算器</h1>
+  <div class="sub">输入层数、纸质代码、长宽高，自动计算纸板㎡单价、净宽、净长、宽度拼版、长度拼版和材料成本。</div>
 </header>
 
 <section class="card">
@@ -105,6 +105,31 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
   <div class="grid" style="margin-top:10px">
     <div><label for="qty">数量，可选</label><input id="qty" type="number" inputmode="numeric" step="1" placeholder="如 1000" /></div>
     <div><label for="manualPrice">手动覆盖纸板㎡单价，可选</label><input id="manualPrice" type="number" inputmode="decimal" step="0.01" placeholder="留空则自动算" /></div>
+  </div>
+  <div class="grid3" style="margin-top:10px">
+    <div>
+      <label for="fluteType">楞型，可选</label>
+      <select id="fluteType">
+        <option value="">未选择</option>
+        <option value="E">E 楞</option>
+        <option value="B">B 楞</option>
+        <option value="C">C 楞</option>
+        <option value="A">A 楞（另加价）</option>
+        <option value="EB">EB 楞</option>
+        <option value="BC">BC 楞</option>
+        <option value="BA">BA 楞（另加价）</option>
+        <option value="EBC">EBC 楞</option>
+        <option value="BCA">BCA 楞（另加价）</option>
+      </select>
+    </div>
+    <div>
+      <label for="manualScore">人工分纸压线</label>
+      <select id="manualScore"><option value="0">不需要</option><option value="1">需要，另加价</option></select>
+    </div>
+    <div>
+      <label for="manualCrease">人工碰线</label>
+      <select id="manualCrease"><option value="0">不需要</option><option value="1">需要，另加价</option></select>
+    </div>
   </div>
   <div class="btnrow"><button class="primary" id="calcBtn">立即计算</button><button class="secondary" id="copyBtn">复制结果</button></div>
   <div class="chips">
@@ -142,7 +167,7 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
 
 <section class="card">
   <h2>数据维护</h2>
-  <div class="tabs"><button id="tabBase" class="on" type="button">基础型号单价</button><button id="tabRules" class="off" type="button">改材加价规则</button></div>
+  <div class="tabs"><button id="tabBase" class="on" type="button">基础型号单价</button><button id="tabRules" class="off" type="button">改材加价规则</button><button id="tabSettings" class="off" type="button">计算参数</button></div>
 
   <div id="basePanel">
     <div class="grid3">
@@ -162,23 +187,68 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
       <div><label for="ruleFromInput">原代码</label><input id="ruleFromInput" class="mini" placeholder="如 3" /></div>
       <div><label for="ruleToInput">改为</label><input id="ruleToInput" class="mini" placeholder="如 6t" /></div>
       <div><label for="rulePriceInput">加价 元/㎡</label><input id="rulePriceInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.26" /></div>
+      <div>
+        <label for="ruleScopeInput">适用层位</label>
+        <select id="ruleScopeInput" class="mini">
+          <option value="any">不限层位</option>
+          <option value="middle">中纸</option>
+          <option value="flute">坑纸</option>
+          <option value="paper">面纸/里纸/中纸</option>
+        </select>
+      </div>
     </div>
     <div class="btnrow"><button class="accent" id="addRuleBtn" type="button">添加/更新规则</button><button class="secondary" id="saveRulesBtn" type="button">保存数据</button></div>
-    <div class="tableWrap"><table><thead><tr><th>改法</th><th class="right">加价</th><th class="right">操作</th></tr></thead><tbody id="rulesTable"></tbody></table></div>
+    <div class="tableWrap"><table><thead><tr><th>改法</th><th>适用层位</th><th class="right">加价</th><th class="right">操作</th></tr></thead><tbody id="rulesTable"></tbody></table></div>
     <div class="btnrow3"><button class="secondary" id="exportRulesBtn" type="button">导出 JSON</button><button class="secondary" id="importRulesBtn" type="button">导入 JSON</button><button class="secondary" id="showRulesBtn" type="button">查看全部 JSON</button></div>
     <div class="btnrow"><button class="dangerBtn" id="resetRulesBtn" type="button">恢复默认规则</button></div>
+    <div class="hint">默认按厂家表理解：2 改系列用于中纸一层加价，3 改系列用于坑纸一层加价，K1/N 改系列用于面纸、里纸或中纸等非坑纸纸层。后续纸厂规则变化时，可调整适用层位。</div>
+  </div>
+
+  <div id="settingsPanel" class="hide">
+    <div class="grid3">
+      <div><label for="discountInput">材料成本折率</label><input id="discountInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.97" /></div>
+      <div><label for="glue3Input">三层接舌 / mm</label><input id="glue3Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="25" /></div>
+      <div><label for="glue5Input">五层接舌 / mm</label><input id="glue5Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="n3OddInput">三层 W 奇数加值</label><input id="n3OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="3" /></div>
+      <div><label for="n3EvenInput">三层 W 偶数加值</label><input id="n3EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="2" /></div>
+      <div><label for="glue7Input">七层接舌 / mm</label><input id="glue7Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="n5OddInput">五层 W 奇数加值</label><input id="n5OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="5" /></div>
+      <div><label for="n5EvenInput">五层 W 偶数加值</label><input id="n5EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="4" /></div>
+      <div><label for="n7OddInput">七层 W 奇数加值</label><input id="n7OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="5" /></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="n7EvenInput">七层 W 偶数加值</label><input id="n7EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="4" /></div>
+      <div><label for="aFluteSurchargeInput">A 楞加价 元/㎡</label><input id="aFluteSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.05" /></div>
+      <div><label for="smallOrderSurchargeInput">低于300㎡加价 元/㎡</label><input id="smallOrderSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.20" /></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="manualScoreSurchargeInput">人工分纸压线 元/㎡</label><input id="manualScoreSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.20" /></div>
+      <div><label for="manualCreaseSurchargeInput">人工碰线 元/㎡</label><input id="manualCreaseSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.20" /></div>
+      <div><label>&nbsp;</label><button class="accent" id="saveSettingsBtn" type="button">保存参数</button></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="sevenWidthMinInput">七层最小门幅 / mm</label><input id="sevenWidthMinInput" class="mini" type="number" inputmode="numeric" step="50" placeholder="1150" /></div>
+      <div><label for="sevenWidthMaxInput">七层最大门幅 / mm</label><input id="sevenWidthMaxInput" class="mini" type="number" inputmode="numeric" step="50" placeholder="2200" /></div>
+      <div><label>&nbsp;</label><button class="dangerBtn" id="resetSettingsBtn" type="button">恢复默认参数</button></div>
+    </div>
+    <div class="hint">默认折率为 0.97。厂家文件注明：所有 A 楞品种另加 0.05 元/㎡；人工分纸压线和人工碰线各另加 0.20 元/㎡；单款订单面积低于 300㎡ 每平方米加价 0.20 元；七层门幅为 1150-2200mm。</div>
   </div>
 </section>
 
-<div class="footer">材料成本 = 毛宽 × 毛长 ÷ 1000000 × 纸板㎡单价 × 0.97。当前只代表纸板材料成本，不含印刷、粘箱、钉箱、运费、税点、利润。</div>
+<div class="footer">材料成本 = 纸板面积 × 纸板㎡单价 × 折率。默认折率 0.97，可在计算参数中调整。当前只代表纸板材料成本，不含印刷、粘箱、钉箱、运费、税点、利润。</div>
 </div>
 
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const WIDTH_MIN=1300, WIDTH_MAX=2500, WIDTH_STEP=50, TRIM=25, DISCOUNT=0.97;
+const WIDTH_MIN=1300, WIDTH_MAX=2500, WIDTH_STEP=50, TRIM=25;
 const TOKEN_PATTERNS=["K1","H1","F2","6b","6t","B","D","A","K","P","Q","N","H","F","W","T","M","2","3","5","6","8"];
-const INPUT_IDS=["layers","paperCode","L","W","H","qty","manualPrice"];
+const INPUT_IDS=["layers","paperCode","L","W","H","qty","manualPrice","fluteType","manualScore","manualCrease"];
+const SETTING_IDS=["discountInput","glue3Input","glue5Input","glue7Input","n3OddInput","n3EvenInput","n5OddInput","n5EvenInput","n7OddInput","n7EvenInput","aFluteSurchargeInput","smallOrderSurchargeInput","manualScoreSurchargeInput","manualCreaseSurchargeInput","sevenWidthMinInput","sevenWidthMaxInput"];
 const DEFAULT_BASE_PRICES={
   "3B":0.79,"3D":0.85,"3A":0.90,"3K1":0.95,"3N":1.14,"3W":1.24,
   "333":1.13,"B33":1.14,"B3B":1.15,"D3B":1.21,
@@ -193,6 +263,26 @@ const DEFAULT_RULES={
   "3>5":0.10,"3>6b":0.15,"3>6":0.19,"3>6t":0.26,"3>8":0.35,
   "K1>K":0.10,"K1>P":0.04,"K1>Q":0.15,
   "N>H":0.09,"N>H1":0.19,"N>F":0.31,"N>F2":0.46,"N>M":0.33,"N>T":0.36
+};
+const DEFAULT_RULE_SCOPES={
+  "2>3":"middle","2>5":"middle","2>6":"middle","2>8":"middle","2>K1":"middle","2>N":"middle",
+  "3>5":"flute","3>6b":"flute","3>6":"flute","3>6t":"flute","3>8":"flute",
+  "K1>K":"paper","K1>P":"paper","K1>Q":"paper",
+  "N>H":"paper","N>H1":"paper","N>F":"paper","N>F2":"paper","N>M":"paper","N>T":"paper"
+};
+const RULE_SCOPE_LABELS={any:"不限层位",middle:"中纸",flute:"坑纸",paper:"面纸/里纸/中纸"};
+const DEFAULT_CALC_SETTINGS={
+  discount:0.97,
+  glue3:25,glue5:30,glue7:30,
+  n3Odd:3,n3Even:2,
+  n5Odd:5,n5Even:4,
+  n7Odd:5,n7Even:4,
+  aFluteSurcharge:0.05,
+  smallOrderSurcharge:0.20,
+  manualScoreSurcharge:0.20,
+  manualCreaseSurcharge:0.20,
+  sevenWidthMin:1150,
+  sevenWidthMax:2200
 };
 let lastText="";
 
@@ -244,9 +334,30 @@ function validateRuleMap(obj){
     if(!from||!to||!TOKEN_PATTERNS.some(p=>p.toLowerCase()===from.toLowerCase())||!TOKEN_PATTERNS.some(p=>p.toLowerCase()===to.toLowerCase())){
       return {ok:false,msg:`规则 ${k} 中存在无法识别的代码`};
     }
-    const add=Number(v);
+    const add=typeof v==="object"&&v!==null?Number(v.price):Number(v);
     if(!Number.isFinite(add)||add<0)return {ok:false,msg:`规则 ${k} 的加价必须大于等于 0`};
+    if(typeof v==="object"&&v!==null){
+      const scope=v.scope||DEFAULT_RULE_SCOPES[k]||"any";
+      if(!Object.prototype.hasOwnProperty.call(RULE_SCOPE_LABELS,scope))return {ok:false,msg:`规则 ${k} 的适用层位无效`};
+    }
   }
+  return {ok:true};
+}
+function validateCalcSettings(obj){
+  if(!obj||Array.isArray(obj)||typeof obj!=="object")return {ok:false,msg:"计算参数必须是对象"};
+  const merged={...DEFAULT_CALC_SETTINGS,...obj};
+  const positiveKeys=["discount","glue3","glue5","glue7","n3Odd","n3Even","n5Odd","n5Even","n7Odd","n7Even","sevenWidthMin","sevenWidthMax"];
+  for(const key of positiveKeys){
+    const value=Number(merged[key]);
+    if(!Number.isFinite(value)||value<=0)return {ok:false,msg:`${key} 必须大于 0`};
+  }
+  const nonNegativeKeys=["aFluteSurcharge","smallOrderSurcharge","manualScoreSurcharge","manualCreaseSurcharge"];
+  for(const key of nonNegativeKeys){
+    const value=Number(merged[key]);
+    if(!Number.isFinite(value)||value<0)return {ok:false,msg:`${key} 必须大于等于 0`};
+  }
+  if(Number(merged.discount)>1.5)return {ok:false,msg:"折率不应大于 1.5，请核对"};
+  if(Number(merged.sevenWidthMin)>Number(merged.sevenWidthMax))return {ok:false,msg:"七层最小门幅不能大于最大门幅"};
   return {ok:true};
 }
 function basePrices(){
@@ -254,6 +365,10 @@ function basePrices(){
 }
 function rules(){
   return getJSON("carton_v3_rules",DEFAULT_RULES,validateRuleMap);
+}
+function calcSettings(){
+  const data=getJSON("carton_v3_calc_settings",DEFAULT_CALC_SETTINGS,validateCalcSettings);
+  return {...DEFAULT_CALC_SETTINGS,...data};
 }
 function canonicalToken(t){
   if(!t)return "";
@@ -283,13 +398,43 @@ function parseCode(code){
   }
   return {ok:true,raw,tokens,code:tokens.join("")};
 }
-function changeCost(from,to,ruleMap){
+function positionType(index,total){
+  if(total===3)return index===1?"flute":"paper";
+  if(total===5){
+    if(index===1||index===3)return "flute";
+    if(index===2)return "middle";
+    return "paper";
+  }
+  if(total===7){
+    if(index===1||index===3||index===5)return "flute";
+    if(index===2||index===4)return "middle";
+    return "paper";
+  }
+  return "any";
+}
+function scopeMatches(scope,position){
+  if(scope==="any")return true;
+  if(scope==="paper")return position==="paper"||position==="middle";
+  return scope===position;
+}
+function ruleEntry(ruleMap,key){
+  const raw=ruleMap[key];
+  if(typeof raw==="object"&&raw!==null){
+    return {price:Number(raw.price),scope:raw.scope||DEFAULT_RULE_SCOPES[key]||"any"};
+  }
+  return {price:Number(raw),scope:DEFAULT_RULE_SCOPES[key]||"any"};
+}
+function changeCost(from,to,ruleMap,position){
   from=canonicalToken(from);to=canonicalToken(to);
   if(from===to)return {ok:true,add:0,text:`${from} 不变`,rule:`${from}>${to}`};
   const key=from+">"+to;
   if(Object.prototype.hasOwnProperty.call(ruleMap,key)){
-    const add=Number(ruleMap[key]);
-    return {ok:true,add,text:`${from} 改 ${to}：规则 ${key}，+${fmt(add,2)} 元/㎡`,rule:key};
+    const entry=ruleEntry(ruleMap,key);
+    if(!scopeMatches(entry.scope,position)){
+      return {ok:false,add:0,text:`规则 ${key} 只适用于${RULE_SCOPE_LABELS[entry.scope]}，当前层位是${RULE_SCOPE_LABELS[position]||position}`,rule:key};
+    }
+    const add=entry.price;
+    return {ok:true,add,text:`${from} 改 ${to}：规则 ${key}，适用${RULE_SCOPE_LABELS[entry.scope]}，+${fmt(add,2)} 元/㎡`,rule:key,scope:entry.scope};
   }
   return {ok:false,add:0,text:`缺少加价规则：${from} 改 ${to}`,rule:key};
 }
@@ -312,6 +457,20 @@ function derivePrice(code,layers){
       ].join("\n")
     };
   }
+  if(layers===7){
+    return {
+      ok:false,price:NaN,status:"七层固定配材",
+      detail:[
+        "【纸板㎡单价】",
+        `纸质代码：${parsed.code}`,
+        `目标型号拆解：${parsed.tokens.join(" / ")}`,
+        "厂家文件注明：7层纸板配材为固定配材。",
+        "当前型号不在基础报价表中，不能按改材规则自动推算；请补充直接表价或手动输入纸板㎡单价。"
+      ].join("\n"),
+      warnings:[`七层 ${parsed.code} 不在厂家固定配材表中，请手动输入或补充直接表价。`],
+      tokens:parsed.tokens
+    };
+  }
 
   const target=parsed.tokens;
   const len=target.length;
@@ -331,7 +490,7 @@ function derivePrice(code,layers){
         match++;
         continue;
       }
-      const r=changeCost(base.tokens[i],target[i],ruleMap);
+      const r=changeCost(base.tokens[i],target[i],ruleMap,positionType(i,len));
       if(!r.ok){
         missingRules.add(r.rule);
         ok=false;
@@ -376,24 +535,28 @@ function derivePrice(code,layers){
   warnings.push("纸板㎡单价为自动推算值，请用真实纸厂报价核对；直接表价优先级高于推算值。");
   return {ok:true,price:c.final,status:`自动推算 ${fmt(c.final,2)}`,detail,tokens:target,baseCode:c.baseCode,warnings};
 }
-function layerRule(layers,W){
+function layerRule(layers,W,settings){
   const odd=Math.round(W)%2!==0;
-  if(layers===3)return {n:odd?3:2,glue:25,label:"三层",odd,assumption:""};
-  if(layers===5)return {n:odd?5:4,glue:30,label:"五层",odd,assumption:""};
-  return {n:odd?5:4,glue:30,label:"七层",odd,assumption:"七层净宽/净长规则暂按五层逻辑或人工确认规则处理，请报价前复核。"};
+  if(layers===3)return {n:odd?settings.n3Odd:settings.n3Even,glue:settings.glue3,label:"三层",odd,assumption:""};
+  if(layers===5)return {n:odd?settings.n5Odd:settings.n5Even,glue:settings.glue5,label:"五层",odd,assumption:""};
+  return {n:odd?settings.n7Odd:settings.n7Even,glue:settings.glue7,label:"七层",odd,assumption:"七层净宽/净长规则暂按计算参数或人工确认规则处理，请报价前复核。"};
 }
 function ceilStep(v){
   return Math.ceil(v/WIDTH_STEP)*WIDTH_STEP;
 }
-function actualWeb(demand){
-  return Math.max(WIDTH_MIN,ceilStep(demand));
+function widthLimits(layers,settings){
+  if(layers===7)return {min:settings.sevenWidthMin,max:settings.sevenWidthMax};
+  return {min:WIDTH_MIN,max:WIDTH_MAX};
 }
-function bestWidth(netWidth){
+function actualWeb(demand,limits){
+  return Math.max(limits.min,ceilStep(demand));
+}
+function bestWidth(netWidth,limits){
   const plans=[];
   for(let x=1;x<=80;x++){
     const demand=x*netWidth+TRIM;
-    if(demand>WIDTH_MAX)break;
-    const web=actualWeb(demand);
+    if(demand>limits.max)break;
+    const web=actualWeb(demand,limits);
     plans.push({x,demand,web,gross:web/x,selected:false});
   }
   plans.sort((a,b)=>b.web-a.web||b.x-a.x);
@@ -463,11 +626,14 @@ function calculate(){
     return;
   }
 
-  const lr=layerRule(layers,W);
+  const settings=calcSettings();
+  const discount=settings.discount;
+  const lr=layerRule(layers,W,settings);
   const netW=W+H+lr.n;
   const netL=2*(L+W)+lr.glue;
   const half=(W+lr.n)/2;
-  const widthPlans=bestWidth(netW);
+  const limits=widthLimits(layers,settings);
+  const widthPlans=bestWidth(netW,limits);
   if(!widthPlans.best){
     $("unitCost").textContent="—";
     $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
@@ -475,7 +641,7 @@ function calculate(){
     $("resultSub").textContent="净宽过大";
     renderRows([["纸质代码",code],["纸板㎡单价",`${fmt(price,2)} 元/㎡`],["净宽",`${fmt(netW,0)}mm`],["状态","无法拼版"]]);
     renderPlanTable([]);
-    renderWarnings(["净宽过大，在 2500mm 门幅内无法拼版。"].concat(warnings),true);
+    renderWarnings([`净宽过大，在 ${limits.min}-${limits.max}mm 门幅内无法拼版。`].concat(warnings),true);
     $("detail").textContent=auto.detail;
     lastText=$("detail").textContent;
     saveInputs();
@@ -483,36 +649,77 @@ function calculate(){
   }
 
   const best=widthPlans.best;
+  const widthX=best.x;
+  const lengthY=netL>=600?1:Math.ceil(600/netL);
+  const lengthSpliced=lengthY>1;
   const grossW=best.gross;
   const grossWForCalc=Number(grossW.toFixed(2));
-  const grossL=netL;
-  const area=grossWForCalc*grossL/1000000;
-  const unit=area*price*DISCOUNT;
+  const grossL=netL*lengthY;
+  const sheetCountPerBoard=widthX*lengthY;
+  const bigSheetArea=best.web*grossL/1000000;
   const qtyInt=Number.isFinite(qty)&&qty>0?Math.round(qty):NaN;
-  const total=Number.isFinite(qtyInt)?unit*qtyInt:NaN;
+  const productionSheets=Number.isFinite(qtyInt)?Math.ceil(qtyInt/sheetCountPerBoard):NaN;
+  const actualCutQty=Number.isFinite(productionSheets)?productionSheets*sheetCountPerBoard:NaN;
+  const surplusQty=Number.isFinite(actualCutQty)?actualCutQty-qtyInt:NaN;
+  const orderArea=Number.isFinite(productionSheets)?bigSheetArea*productionSheets:NaN;
+  const fluteType=$("fluteType").value;
+  const aFluteAdd=fluteType.includes("A")?settings.aFluteSurcharge:0;
+  const manualScoreAdd=$("manualScore").value==="1"?settings.manualScoreSurcharge:0;
+  const manualCreaseAdd=$("manualCrease").value==="1"?settings.manualCreaseSurcharge:0;
+  const smallOrderAdd=Number.isFinite(orderArea)&&orderArea<300?settings.smallOrderSurcharge:0;
+  const effectivePrice=price+aFluteAdd+manualScoreAdd+manualCreaseAdd+smallOrderAdd;
+  const bigSheetCost=bigSheetArea*effectivePrice*discount;
+  const theoreticalUnit=bigSheetCost/sheetCountPerBoard;
+  const total=Number.isFinite(productionSheets)?bigSheetCost*productionSheets:NaN;
+  const actualUnit=Number.isFinite(total)?total/qtyInt:NaN;
   if(lr.assumption)warnings.push(lr.assumption);
-  if(grossL<600)warnings.push("毛长低于 600mm，可能需要按最低长度或特殊规则处理，请向纸厂确认。");
+  if(lengthSpliced)warnings.push(`原净长 ${fmt(netL,0)}mm 低于 600mm，已自动按 y=${lengthY} 拼长，拼长后毛长 ${fmt(grossL,0)}mm。`);
   if(grossL>3500)warnings.push("毛长超过 3500mm，可能超出常规生产范围，请向纸厂确认。");
+  if(!fluteType)warnings.push("未选择楞型，默认不计算 A 楞另加价；若为 A、BA 或 BCA 楞，请选择对应楞型。");
+  if(Number.isFinite(productionSheets)&&productionSheets<20)warnings.push(`生产大张数 ${productionSheets} 张低于厂家文件要求的 20 张，请向纸厂确认是否接单。`);
+  const orderLength=Number.isFinite(productionSheets)?productionSheets*grossL/1000:NaN;
+  if(Number.isFinite(orderLength)&&orderLength<30)warnings.push(`订单长度 ${fixed(orderLength,2)} 米低于厂家文件要求的 30 米，请向纸厂确认是否接单。`);
+  if(smallOrderAdd>0)warnings.push(`单款订单面积 ${fixed(orderArea,2)}㎡ 低于 300㎡，已按厂家文件加 ${fmt(smallOrderAdd,2)} 元/㎡。`);
+  if(!Number.isFinite(qtyInt))warnings.push("未填写数量时，不计算尾数损耗。");
 
-  $("unitCost").textContent=`${money3(unit)} 元/个`;
+  $("unitCost").textContent=`${money3(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit)} 元/个`;
   $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
-  $("quickRounded").textContent=`${fixed(unit,2)} 元/个`;
-  $("resultSub").textContent=`${lr.label}｜${code}｜${priceNote}`;
-  renderRows([
+  $("quickRounded").textContent=`${fixed(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit,2)} 元/个`;
+  $("resultSub").textContent=`${lr.label}｜${code}｜${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`;
+  const rows=[
     ["纸质代码",code],
     ["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],
+    ["A楞加价",`${fmt(aFluteAdd,2)} 元/㎡`],
+    ["人工工序加价",`${fmt(manualScoreAdd+manualCreaseAdd,2)} 元/㎡`],
+    ["小单加价",`${fmt(smallOrderAdd,2)} 元/㎡`],
+    ["计价㎡单价",`${fmt(effectivePrice,2)} 元/㎡`],
+    ["材料成本折率",String(discount)],
     ["净宽",`${fmt(netW,0)}mm`],
     ["净长",`${fmt(netL,0)}mm`],
     ["半盖宽",`${fmt(half,2)}mm`],
-    ["拼版数量 x",String(best.x)],
+    ["宽度拼版倍数 x",String(widthX)],
+    ["长度拼版倍数 y",String(lengthY)],
+    ["是否触发拼长",lengthSpliced?"是":"否"],
     ["实际门幅",`${fmt(best.web,0)}mm`],
     ["毛宽",`${fixed(grossW,2)}mm`],
     ["毛长",`${fmt(grossL,0)}mm`],
-    ["单个计价面积",`${fixed(area,5)}㎡`],
-    ["单个材料成本",`${money3(unit)} 元/个`],
-    ["两位参考",`${fixed(unit,2)} 元/个`],
-    ["总材料成本",Number.isFinite(total)?`${fixed(total,2)} 元`:"—"]
-  ]);
+    ["单张大纸板可裁数量",`${sheetCountPerBoard} 个`],
+    ["单张大纸板成本",`${fixed(bigSheetCost,2)} 元`],
+    ["理论单个材料成本",`${money3(theoreticalUnit)} 元/个`]
+  ];
+  if(Number.isFinite(qtyInt)){
+    rows.push(
+      ["数量",`${qtyInt} 个`],
+      ["生产大张数",`${productionSheets} 张`],
+      ["实际可裁数量",`${actualCutQty} 个`],
+      ["余量数量",`${surplusQty} 个`],
+      ["订单面积",`${fixed(orderArea,2)}㎡`],
+      ["订单长度",`${fixed(orderLength,2)} 米`],
+      ["总材料成本",`${fixed(total,2)} 元`],
+      ["实际平均单个成本",`${money3(actualUnit)} 元/个`]
+    );
+  }
+  renderRows(rows);
   renderPlanTable(widthPlans.plans);
   renderWarnings(warnings);
 
@@ -521,16 +728,24 @@ function calculate(){
     "【核心结果】",
     `纸质代码：${code}`,
     `纸板㎡单价：${fmt(price,2)} 元/㎡`,
-    `单个材料成本：${money3(unit)} 元/个`,
-    `两位参考：${fixed(unit,2)} 元/个`,
+    `楞型：${fluteType||"未选择"}`,
+    `A楞加价：${fmt(aFluteAdd,2)} 元/㎡`,
+    `人工分纸压线加价：${fmt(manualScoreAdd,2)} 元/㎡`,
+    `人工碰线加价：${fmt(manualCreaseAdd,2)} 元/㎡`,
+    `小单加价：${fmt(smallOrderAdd,2)} 元/㎡`,
+    `计价㎡单价：${fmt(effectivePrice,2)} 元/㎡`,
+    `材料成本折率：${discount}`,
+    `理论单个材料成本：${money3(theoreticalUnit)} 元/个`,
+    `两位参考：${fixed(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit,2)} 元/个`,
     `数量：${Number.isFinite(qtyInt)?qtyInt:"未填"}`,
-    `总材料成本：${Number.isFinite(total)?fixed(total,2)+" 元":"—"}`,
+    `总材料成本：${Number.isFinite(total)?fixed(total,2)+" 元":"未填写数量，不计算尾数损耗"}`,
+    Number.isFinite(actualUnit)?`实际平均单个成本：${money3(actualUnit)} 元/个`:"",
     "",
     auto.detail,
     "",
     "【尺寸计算】",
     `层数：${lr.label}`,
-    `W = ${W}，为${lr.odd?"奇数":"偶数"}，n = ${lr.n}`,
+    `W = ${W}，为${lr.odd?"奇数":"偶数"}，n = ${lr.n}（来自计算参数）`,
     `净宽 = ${W} + ${H} + ${lr.n} = ${fmt(netW,0)}mm`,
     `净长 = 2 × (${L} + ${W}) + ${lr.glue} = ${fmt(netL,0)}mm`,
     `半盖宽 = (${W} + ${lr.n}) ÷ 2 = ${fmt(half,2)}mm`,
@@ -538,20 +753,33 @@ function calculate(){
     lr.assumption,
     "",
     "【拼版计算】",
-    "纸厂原则：优先选择最靠近 2500mm 的最大可行门幅；实际门幅向上取 50mm 档位；同门幅优先 x 更大。",
+    `纸厂原则：门幅范围 ${limits.min}-${limits.max}mm，每 50mm 一档；优先选择最靠近最大门幅的可行排法；同门幅优先 x 更大。`,
     planText,
-    `最终拼版 x = ${best.x}`,
-    `需求门幅 = ${best.x} × ${fmt(netW,0)} + ${TRIM} = ${fmt(best.demand,0)}mm`,
+    `宽度拼版倍数 x = ${widthX}`,
+    `宽度方向一张大纸板可裁 ${widthX} 个箱片`,
+    `需求门幅 = ${widthX} × ${fmt(netW,0)} + ${TRIM} = ${fmt(best.demand,0)}mm`,
     `实际门幅 = ${fmt(best.web,0)}mm`,
-    `毛宽 = ${fmt(best.web,0)} ÷ ${best.x} = ${fixed(grossW,2)}mm`,
-    `毛长 = 净长 = ${fmt(grossL,0)}mm`,
+    `毛宽 = ${fmt(best.web,0)} ÷ ${widthX} = ${fixed(grossW,2)}mm`,
+    `原净长 = ${fmt(netL,0)}mm`,
+    `长度拼版倍数 y = ${lengthY}`,
+    `拼长后毛长 = ${fmt(netL,0)} × ${lengthY} = ${fmt(grossL,0)}mm`,
+    `是否触发拼长：${lengthSpliced?"是":"否"}`,
+    `单张大纸板可裁数量 = ${widthX} × ${lengthY} = ${sheetCountPerBoard} 个`,
     "",
     "【计价面积】",
-    `面积 = ${fixed(grossW,2)} × ${fmt(grossL,0)} ÷ 1000000 = ${fixed(area,5)}㎡`,
+    `单张大纸板面积 = ${fmt(best.web,0)} × ${fmt(grossL,0)} ÷ 1000000 = ${fixed(bigSheetArea,5)}㎡`,
     "",
     "【材料成本】",
-    `成本 = ${fixed(area,5)} × ${fmt(price,2)} × ${DISCOUNT} = ${money3(unit)} 元/个`,
-    Number.isFinite(total)?`总材料成本 = ${money3(unit)} × ${qtyInt} = ${fixed(total,2)} 元`:"",
+    `计价㎡单价 = ${fmt(price,2)} + ${fmt(aFluteAdd,2)} + ${fmt(manualScoreAdd,2)} + ${fmt(manualCreaseAdd,2)} + ${fmt(smallOrderAdd,2)} = ${fmt(effectivePrice,2)} 元/㎡`,
+    `单张大纸板成本 = ${fixed(bigSheetArea,5)} × ${fmt(effectivePrice,2)} × ${discount} = ${fixed(bigSheetCost,2)} 元`,
+    `理论单个材料成本 = ${fixed(bigSheetCost,2)} ÷ ${sheetCountPerBoard} = ${money3(theoreticalUnit)} 元/个`,
+    Number.isFinite(qtyInt)?`生产大张数 = ceil(${qtyInt} ÷ ${sheetCountPerBoard}) = ${productionSheets} 张`:"未填写数量时，不计算尾数损耗。",
+    Number.isFinite(qtyInt)?`实际可裁数量 = ${productionSheets} × ${sheetCountPerBoard} = ${actualCutQty} 个`:"",
+    Number.isFinite(qtyInt)?`余量数量 = ${actualCutQty} - ${qtyInt} = ${surplusQty} 个`:"",
+    Number.isFinite(qtyInt)?`订单面积 = ${fixed(bigSheetArea,5)} × ${productionSheets} = ${fixed(orderArea,2)}㎡`:"",
+    Number.isFinite(qtyInt)?`订单长度 = ${productionSheets} × ${fmt(grossL,0)} ÷ 1000 = ${fixed(orderLength,2)} 米`:"",
+    Number.isFinite(qtyInt)?`总材料成本 = ${fixed(bigSheetCost,2)} × ${productionSheets} = ${fixed(total,2)} 元`:"",
+    Number.isFinite(qtyInt)?`实际平均单个成本 = ${fixed(total,2)} ÷ ${qtyInt} = ${money3(actualUnit)} 元/个`:"",
     warnings.length?`\n【风险提示】\n${warnings.join("\n")}`:""
   ].filter(line=>line!==undefined&&line!==null).join("\n");
   $("detail").textContent=detail;
@@ -581,9 +809,59 @@ function renderRulesTable(){
   const data=rules();
   const rows=Object.entries(data)
     .sort((a,b)=>a[0].localeCompare(b[0]))
-    .map(([k,v])=>`<tr><td>${escapeHtml(k.replace(">"," 改 "))}</td><td class="right">${fmt(Number(v),2)}</td><td class="right"><button class="mini secondary" data-edit-rule="${escapeHtml(k)}">编辑</button> <button class="mini dangerBtn" data-del-rule="${escapeHtml(k)}">删</button></td></tr>`)
+    .map(([k,v])=>{const entry=ruleEntry(data,k);return `<tr><td>${escapeHtml(k.replace(">"," 改 "))}</td><td>${escapeHtml(RULE_SCOPE_LABELS[entry.scope]||entry.scope)}</td><td class="right">${fmt(entry.price,2)}</td><td class="right"><button class="mini secondary" data-edit-rule="${escapeHtml(k)}">编辑</button> <button class="mini dangerBtn" data-del-rule="${escapeHtml(k)}">删</button></td></tr>`;})
     .join("");
-  $("rulesTable").innerHTML=rows||'<tr><td colspan="3">没有数据</td></tr>';
+  $("rulesTable").innerHTML=rows||'<tr><td colspan="4">没有数据</td></tr>';
+}
+function renderSettings(){
+  const settings=calcSettings();
+  $("discountInput").value=settings.discount;
+  $("glue3Input").value=settings.glue3;
+  $("glue5Input").value=settings.glue5;
+  $("glue7Input").value=settings.glue7;
+  $("n3OddInput").value=settings.n3Odd;
+  $("n3EvenInput").value=settings.n3Even;
+  $("n5OddInput").value=settings.n5Odd;
+  $("n5EvenInput").value=settings.n5Even;
+  $("n7OddInput").value=settings.n7Odd;
+  $("n7EvenInput").value=settings.n7Even;
+  $("aFluteSurchargeInput").value=settings.aFluteSurcharge;
+  $("smallOrderSurchargeInput").value=settings.smallOrderSurcharge;
+  $("manualScoreSurchargeInput").value=settings.manualScoreSurcharge;
+  $("manualCreaseSurchargeInput").value=settings.manualCreaseSurcharge;
+  $("sevenWidthMinInput").value=settings.sevenWidthMin;
+  $("sevenWidthMaxInput").value=settings.sevenWidthMax;
+}
+function readSettingsForm(){
+  return {
+    discount:Number($("discountInput").value),
+    glue3:Number($("glue3Input").value),
+    glue5:Number($("glue5Input").value),
+    glue7:Number($("glue7Input").value),
+    n3Odd:Number($("n3OddInput").value),
+    n3Even:Number($("n3EvenInput").value),
+    n5Odd:Number($("n5OddInput").value),
+    n5Even:Number($("n5EvenInput").value),
+    n7Odd:Number($("n7OddInput").value),
+    n7Even:Number($("n7EvenInput").value),
+    aFluteSurcharge:Number($("aFluteSurchargeInput").value),
+    smallOrderSurcharge:Number($("smallOrderSurchargeInput").value),
+    manualScoreSurcharge:Number($("manualScoreSurchargeInput").value),
+    manualCreaseSurcharge:Number($("manualCreaseSurchargeInput").value),
+    sevenWidthMin:Number($("sevenWidthMinInput").value),
+    sevenWidthMax:Number($("sevenWidthMaxInput").value)
+  };
+}
+function saveSettings(){
+  const settings=readSettingsForm();
+  const valid=validateCalcSettings(settings);
+  if(!valid.ok){
+    alert("计算参数保存失败："+valid.msg);
+    return;
+  }
+  setJSON("carton_v3_calc_settings",settings);
+  renderSettings();
+  alert("计算参数已保存");
 }
 function addBase(){
   const parsed=parseCode($("baseCodeInput").value);
@@ -602,16 +880,17 @@ function addRule(){
   const from=canonicalToken($("ruleFromInput").value);
   const to=canonicalToken($("ruleToInput").value);
   const price=Number($("rulePriceInput").value);
+  const scope=$("ruleScopeInput").value||"any";
   const validToken=t=>TOKEN_PATTERNS.some(p=>p.toLowerCase()===String(t).toLowerCase());
-  if(!validToken(from)||!validToken(to)||!Number.isFinite(price)||price<0){
+  if(!validToken(from)||!validToken(to)||!Number.isFinite(price)||price<0||!Object.prototype.hasOwnProperty.call(RULE_SCOPE_LABELS,scope)){
     alert("请填写正确的改材规则和加价");
     return;
   }
   const data=rules();
-  data[from+">"+to]=price;
+  data[from+">"+to]={price,scope};
   setJSON("carton_v3_rules",data);
   renderRulesTable();
-  alert(`已保存规则：${from} 改 ${to} = ${price}`);
+  alert(`已保存规则：${from} 改 ${to}，${RULE_SCOPE_LABELS[scope]} = ${price}`);
 }
 function importObj(key,title,validator,after){
   const input=prompt(`${title}：粘贴 JSON 后点确定导入。`,JSON.stringify(key==="carton_v3_base_prices"?basePrices():rules(),null,2));
@@ -652,8 +931,9 @@ $("clearBtn").onclick=()=>{
   $("detail").textContent="暂无。";lastText="";
   renderRows([["状态","等待计算"]]);renderWarnings([]);renderPlanTable([]);saveInputs();
 };
-$("tabBase").onclick=()=>{$("basePanel").classList.remove("hide");$("rulesPanel").classList.add("hide");$("tabBase").className="on";$("tabRules").className="off";};
-$("tabRules").onclick=()=>{$("basePanel").classList.add("hide");$("rulesPanel").classList.remove("hide");$("tabBase").className="off";$("tabRules").className="on";};
+$("tabBase").onclick=()=>{$("basePanel").classList.remove("hide");$("rulesPanel").classList.add("hide");$("settingsPanel").classList.add("hide");$("tabBase").className="on";$("tabRules").className="off";$("tabSettings").className="off";};
+$("tabRules").onclick=()=>{$("basePanel").classList.add("hide");$("rulesPanel").classList.remove("hide");$("settingsPanel").classList.add("hide");$("tabBase").className="off";$("tabRules").className="on";$("tabSettings").className="off";};
+$("tabSettings").onclick=()=>{$("basePanel").classList.add("hide");$("rulesPanel").classList.add("hide");$("settingsPanel").classList.remove("hide");$("tabBase").className="off";$("tabRules").className="off";$("tabSettings").className="on";renderSettings();};
 $("addBaseBtn").onclick=addBase;
 $("addRuleBtn").onclick=addRule;
 $("baseSearch").oninput=renderBaseTable;
@@ -661,6 +941,8 @@ $("saveBaseBtn").onclick=()=>{setJSON("carton_v3_base_prices",basePrices());aler
 $("saveRulesBtn").onclick=()=>{setJSON("carton_v3_rules",rules());alert("改材加价规则已保存");};
 $("resetBaseBtn").onclick=()=>{if(confirm("确定恢复默认基础报价表？当前修改会被覆盖。")){setJSON("carton_v3_base_prices",DEFAULT_BASE_PRICES);renderBaseTable();}};
 $("resetRulesBtn").onclick=()=>{if(confirm("确定恢复默认加价规则？当前修改会被覆盖。")){setJSON("carton_v3_rules",DEFAULT_RULES);renderRulesTable();}};
+$("saveSettingsBtn").onclick=saveSettings;
+$("resetSettingsBtn").onclick=()=>{if(confirm("确定恢复默认计算参数？当前修改会被覆盖。")){setJSON("carton_v3_calc_settings",DEFAULT_CALC_SETTINGS);renderSettings();}};
 $("exportBaseBtn").onclick=()=>exportObj(basePrices(),"基础型号单价 JSON");
 $("importBaseBtn").onclick=()=>importObj("carton_v3_base_prices","基础型号单价 JSON",validatePriceMap,renderBaseTable);
 $("showBaseBtn").onclick=()=>showObj(basePrices(),"基础型号单价 JSON");
@@ -684,9 +966,11 @@ document.addEventListener("click",e=>{
   const editRule=e.target.getAttribute("data-edit-rule");
   if(editRule){
     const [from,to]=editRule.split(">");
+    const entry=ruleEntry(rules(),editRule);
     $("ruleFromInput").value=from;
     $("ruleToInput").value=to;
-    $("rulePriceInput").value=rules()[editRule];
+    $("rulePriceInput").value=entry.price;
+    $("ruleScopeInput").value=entry.scope;
   }
   const delRule=e.target.getAttribute("data-del-rule");
   if(delRule&&confirm(`删除规则 ${delRule}？`)){
@@ -703,6 +987,7 @@ INPUT_IDS.forEach(id=>{
 loadInputs();
 renderBaseTable();
 renderRulesTable();
+renderSettings();
 renderWarnings([]);
 })();
 </script>
