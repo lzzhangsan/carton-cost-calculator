@@ -91,8 +91,10 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
       <select id="layers">
         <option value="5">五层</option>
         <option value="3">三层</option>
-        <option value="7">七层（按五层逻辑暂算，需复核）</option>
         <option value="divider">隔板</option>
+        <option value="2">二层</option>
+        <option value="4">四层</option>
+        <option value="7">七层</option>
       </select>
     </div>
     <div>
@@ -210,13 +212,23 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
   <div id="settingsPanel" class="hide">
     <div class="grid3">
       <div><label for="discountInput">材料成本折率</label><input id="discountInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.97" /></div>
+      <div><label for="glue2Input">二层接舌 / mm</label><input id="glue2Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="25" /></div>
       <div><label for="glue3Input">三层接舌 / mm</label><input id="glue3Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="25" /></div>
-      <div><label for="glue5Input">五层接舌 / mm</label><input id="glue5Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
     </div>
     <div class="grid3" style="margin-top:10px">
-      <div><label for="n3OddInput">三层 W 奇数加值</label><input id="n3OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="3" /></div>
-      <div><label for="n3EvenInput">三层 W 偶数加值</label><input id="n3EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="2" /></div>
+      <div><label for="glue4Input">四层接舌 / mm</label><input id="glue4Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
+      <div><label for="glue5Input">五层接舌 / mm</label><input id="glue5Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
       <div><label for="glue7Input">七层接舌 / mm</label><input id="glue7Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="n2OddInput">二层 W 奇数加值</label><input id="n2OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="3" /></div>
+      <div><label for="n2EvenInput">二层 W 偶数加值</label><input id="n2EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="2" /></div>
+      <div><label for="n3OddInput">三层 W 奇数加值</label><input id="n3OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="3" /></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div><label for="n3EvenInput">三层 W 偶数加值</label><input id="n3EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="2" /></div>
+      <div><label for="n4OddInput">四层 W 奇数加值</label><input id="n4OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="5" /></div>
+      <div><label for="n4EvenInput">四层 W 偶数加值</label><input id="n4EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="4" /></div>
     </div>
     <div class="grid3" style="margin-top:10px">
       <div><label for="n5OddInput">五层 W 奇数加值</label><input id="n5OddInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="5" /></div>
@@ -251,7 +263,7 @@ const $=id=>document.getElementById(id);
 const WIDTH_MIN=1300, WIDTH_MAX=2500, WIDTH_STEP=50, TRIM=25;
 const TOKEN_PATTERNS=["K1","H1","F2","6b","6t","B","D","A","K","P","Q","N","H","F","W","T","M","2","3","5","6","8"];
 const INPUT_IDS=["layers","paperCode","L","W","H","qty","manualPrice","fluteType","manualScore","manualCrease"];
-const SETTING_IDS=["discountInput","glue3Input","glue5Input","glue7Input","n3OddInput","n3EvenInput","n5OddInput","n5EvenInput","n7OddInput","n7EvenInput","aFluteSurchargeInput","smallOrderSurchargeInput","manualScoreSurchargeInput","manualCreaseSurchargeInput","sevenWidthMinInput","sevenWidthMaxInput"];
+const SETTING_IDS=["discountInput","glue2Input","glue3Input","glue4Input","glue5Input","glue7Input","n2OddInput","n2EvenInput","n3OddInput","n3EvenInput","n4OddInput","n4EvenInput","n5OddInput","n5EvenInput","n7OddInput","n7EvenInput","aFluteSurchargeInput","smallOrderSurchargeInput","manualScoreSurchargeInput","manualCreaseSurchargeInput","sevenWidthMinInput","sevenWidthMaxInput"];
 const DEFAULT_BASE_PRICES={
   "3B":0.79,"3D":0.85,"3A":0.90,"3K1":0.95,"3N":1.14,"3W":1.24,
   "333":1.13,"B33":1.14,"B3B":1.15,"D3B":1.21,
@@ -276,8 +288,10 @@ const DEFAULT_RULE_SCOPES={
 const RULE_SCOPE_LABELS={any:"不限层位",middle:"中纸",flute:"坑纸",paper:"面纸/里纸/中纸"};
 const DEFAULT_CALC_SETTINGS={
   discount:0.97,
-  glue3:25,glue5:30,glue7:30,
+  glue2:25,glue3:25,glue4:30,glue5:30,glue7:30,
+  n2Odd:3,n2Even:2,
   n3Odd:3,n3Even:2,
+  n4Odd:5,n4Even:4,
   n5Odd:5,n5Even:4,
   n7Odd:5,n7Even:4,
   aFluteSurcharge:0.05,
@@ -349,7 +363,7 @@ function validateRuleMap(obj){
 function validateCalcSettings(obj){
   if(!obj||Array.isArray(obj)||typeof obj!=="object")return {ok:false,msg:"计算参数必须是对象"};
   const merged={...DEFAULT_CALC_SETTINGS,...obj};
-  const positiveKeys=["discount","glue3","glue5","glue7","n3Odd","n3Even","n5Odd","n5Even","n7Odd","n7Even","sevenWidthMin","sevenWidthMax"];
+  const positiveKeys=["discount","glue2","glue3","glue4","glue5","glue7","n2Odd","n2Even","n3Odd","n3Even","n4Odd","n4Even","n5Odd","n5Even","n7Odd","n7Even","sevenWidthMin","sevenWidthMax"];
   for(const key of positiveKeys){
     const value=Number(merged[key]);
     if(!Number.isFinite(value)||value<=0)return {ok:false,msg:`${key} 必须大于 0`};
@@ -402,7 +416,12 @@ function parseCode(code){
   return {ok:true,raw,tokens,code:tokens.join("")};
 }
 function positionType(index,total){
+  if(total===2)return index===0?"flute":"paper";
   if(total===3)return index===1?"flute":"paper";
+  if(total===4){
+    if(index===0||index===2)return "flute";
+    return "paper";
+  }
   if(total===5){
     if(index===1||index===3)return "flute";
     if(index===2)return "middle";
@@ -477,7 +496,7 @@ function derivePrice(code,layers){
 
   const target=parsed.tokens;
   const len=target.length;
-  const expected={3:3,5:5,7:7}[layers];
+  const expected={2:2,3:3,4:4,5:5,7:7}[layers];
   const warnings=[];
   if(expected&&len!==expected)warnings.push(`${layers}层通常应为 ${expected} 段，当前拆为 ${len} 段：${target.join(" / ")}`);
 
@@ -540,7 +559,9 @@ function derivePrice(code,layers){
 }
 function layerRule(layers,W,settings){
   const odd=Math.round(W)%2!==0;
+  if(layers===2)return {n:odd?settings.n2Odd:settings.n2Even,glue:settings.glue2,label:"二层",odd,assumption:"二层纸箱净宽/净长规则暂按计算参数处理，请报价前复核。"};
   if(layers===3)return {n:odd?settings.n3Odd:settings.n3Even,glue:settings.glue3,label:"三层",odd,assumption:""};
+  if(layers===4)return {n:odd?settings.n4Odd:settings.n4Even,glue:settings.glue4,label:"四层",odd,assumption:"四层纸箱净宽/净长规则暂按计算参数处理，请报价前复核。"};
   if(layers===5)return {n:odd?settings.n5Odd:settings.n5Even,glue:settings.glue5,label:"五层",odd,assumption:""};
   return {n:odd?settings.n7Odd:settings.n7Even,glue:settings.glue7,label:"七层",odd,assumption:"七层净宽/净长规则暂按计算参数或人工确认规则处理，请报价前复核。"};
 }
@@ -907,11 +928,17 @@ function renderRulesTable(){
 function renderSettings(){
   const settings=calcSettings();
   $("discountInput").value=settings.discount;
+  $("glue2Input").value=settings.glue2;
   $("glue3Input").value=settings.glue3;
+  $("glue4Input").value=settings.glue4;
   $("glue5Input").value=settings.glue5;
   $("glue7Input").value=settings.glue7;
+  $("n2OddInput").value=settings.n2Odd;
+  $("n2EvenInput").value=settings.n2Even;
   $("n3OddInput").value=settings.n3Odd;
   $("n3EvenInput").value=settings.n3Even;
+  $("n4OddInput").value=settings.n4Odd;
+  $("n4EvenInput").value=settings.n4Even;
   $("n5OddInput").value=settings.n5Odd;
   $("n5EvenInput").value=settings.n5Even;
   $("n7OddInput").value=settings.n7Odd;
@@ -926,11 +953,17 @@ function renderSettings(){
 function readSettingsForm(){
   return {
     discount:Number($("discountInput").value),
+    glue2:Number($("glue2Input").value),
     glue3:Number($("glue3Input").value),
+    glue4:Number($("glue4Input").value),
     glue5:Number($("glue5Input").value),
     glue7:Number($("glue7Input").value),
+    n2Odd:Number($("n2OddInput").value),
+    n2Even:Number($("n2EvenInput").value),
     n3Odd:Number($("n3OddInput").value),
     n3Even:Number($("n3EvenInput").value),
+    n4Odd:Number($("n4OddInput").value),
+    n4Even:Number($("n4EvenInput").value),
     n5Odd:Number($("n5OddInput").value),
     n5Even:Number($("n5EvenInput").value),
     n7Odd:Number($("n7OddInput").value),
