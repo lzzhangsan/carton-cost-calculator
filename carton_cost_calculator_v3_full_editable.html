@@ -92,6 +92,7 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
         <option value="5">五层</option>
         <option value="3">三层</option>
         <option value="7">七层（按五层逻辑暂算，需复核）</option>
+        <option value="divider">隔板</option>
       </select>
     </div>
     <div>
@@ -582,15 +583,23 @@ function renderPlanTable(plans){
   }
   $("planTable").innerHTML=plans.map(p=>`<tr class="${p.selected?"selectedRow":""}"><td>${p.x}</td><td class="right">${fmt(p.demand,0)}mm</td><td class="right">${fmt(p.web,0)}mm</td><td class="right">${fixed(p.gross,2)}mm</td><td class="right">${p.selected?"选中":"候选"}</td></tr>`).join("");
 }
+function updateModeUI(){
+  const isDivider=$("layers").value==="divider";
+  $("H").disabled=isDivider;
+  $("H").placeholder=isDivider?"隔板不填高 H":"265";
+  if(isDivider)$("H").value="";
+}
 function calculate(){
-  const layers=parseInt($("layers").value,10);
+  const layerValue=$("layers").value;
+  const isDivider=layerValue==="divider";
+  const layers=isDivider?0:parseInt(layerValue,10);
   const L=num("L"),W=num("W"),H=num("H"),qty=num("qty"),manual=num("manualPrice");
   const inputCode=$("paperCode").value.trim();
   const errors=[];
   if(!inputCode)errors.push("请填写纸质代码。");
-  if(!Number.isFinite(L)||L<=0)errors.push("请填写正确的长 L。");
-  if(!Number.isFinite(W)||W<=0)errors.push("请填写正确的宽 W。");
-  if(!Number.isFinite(H)||H<=0)errors.push("请填写正确的高 H。");
+  if(!Number.isFinite(L)||L<=0)errors.push(isDivider?"请填写正确的隔板长。":"请填写正确的长 L。");
+  if(!Number.isFinite(W)||W<=0)errors.push(isDivider?"请填写正确的隔板宽。":"请填写正确的宽 W。");
+  if(!isDivider&&(!Number.isFinite(H)||H<=0))errors.push("请填写正确的高 H。");
   if(errors.length){
     $("unitCost").textContent="—";
     $("quickPrice").textContent="—";
@@ -630,6 +639,70 @@ function calculate(){
 
   const settings=calcSettings();
   const discount=settings.discount;
+  if(isDivider){
+    const qtyInt=Number.isFinite(qty)&&qty>0?Math.round(qty):NaN;
+    const fluteType=$("fluteType").value;
+    const aFluteAdd=fluteType.includes("A")?settings.aFluteSurcharge:0;
+    const manualScoreAdd=$("manualScore").value==="1"?settings.manualScoreSurcharge:0;
+    const manualCreaseAdd=$("manualCrease").value==="1"?settings.manualCreaseSurcharge:0;
+    const area=L*W/1000000;
+    const effectivePrice=price+aFluteAdd+manualScoreAdd+manualCreaseAdd;
+    const unit=area*effectivePrice*discount;
+    const total=Number.isFinite(qtyInt)?unit*qtyInt:NaN;
+    const dividerWarnings=[...warnings];
+    if(!fluteType)dividerWarnings.push("未选择楞型，默认不计算 A 楞另加价；若隔板为 A、BA 或 BCA 楞，请选择对应楞型。");
+    if(!Number.isFinite(qtyInt))dividerWarnings.push("未填写数量时，只计算单张隔板理论材料成本。");
+    $("unitCost").textContent=`${money3(unit)} 元/张`;
+    $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
+    $("quickRounded").textContent=`${fixed(unit,2)} 元/张`;
+    $("resultSub").textContent=`隔板｜${code}｜${fmt(L,0)}×${fmt(W,0)}mm`;
+    const rows=[
+      ["物料类型","隔板"],
+      ["隔板型号",code],
+      ["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],
+      ["A楞加价",`${fmt(aFluteAdd,2)} 元/㎡`],
+      ["人工工序加价",`${fmt(manualScoreAdd+manualCreaseAdd,2)} 元/㎡`],
+      ["计价㎡单价",`${fmt(effectivePrice,2)} 元/㎡`],
+      ["材料成本折率",String(discount)],
+      ["隔板长",`${fmt(L,0)}mm`],
+      ["隔板宽",`${fmt(W,0)}mm`],
+      ["单张面积",`${fixed(area,5)}㎡`],
+      ["单张隔板材料成本",`${money3(unit)} 元/张`],
+      ["两位参考",`${fixed(unit,2)} 元/张`]
+    ];
+    if(Number.isFinite(qtyInt)){
+      rows.push(["数量",`${qtyInt} 张`],["总材料成本",`${fixed(total,2)} 元`]);
+    }
+    renderRows(rows);
+    $("planTable").innerHTML='<tr><td colspan="5">隔板按平面面积计价，不参与纸箱门幅拼版。</td></tr>';
+    renderWarnings(dividerWarnings);
+    const detail=[
+      "【核心结果】",
+      "物料类型：隔板",
+      `隔板型号：${code}`,
+      `尺寸：${fmt(L,0)}×${fmt(W,0)}mm`,
+      `纸板㎡单价：${fmt(price,2)} 元/㎡`,
+      `计价㎡单价：${fmt(effectivePrice,2)} 元/㎡`,
+      `单张隔板材料成本：${money3(unit)} 元/张`,
+      Number.isFinite(qtyInt)?`总材料成本：${fixed(total,2)} 元`:"数量：未填",
+      "",
+      auto.detail,
+      "",
+      "【隔板面积】",
+      `面积 = ${fmt(L,0)} × ${fmt(W,0)} ÷ 1000000 = ${fixed(area,5)}㎡`,
+      "",
+      "【材料成本】",
+      `计价㎡单价 = ${fmt(price,2)} + ${fmt(aFluteAdd,2)} + ${fmt(manualScoreAdd,2)} + ${fmt(manualCreaseAdd,2)} = ${fmt(effectivePrice,2)} 元/㎡`,
+      `单张隔板材料成本 = ${fixed(area,5)} × ${fmt(effectivePrice,2)} × ${discount} = ${money3(unit)} 元/张`,
+      Number.isFinite(qtyInt)?`总材料成本 = ${money3(unit)} × ${qtyInt} = ${fixed(total,2)} 元`:"",
+      dividerWarnings.length?`\n【风险提示】\n${dividerWarnings.join("\n")}`:""
+    ].filter(Boolean).join("\n");
+    $("detail").textContent=detail;
+    lastText=detail;
+    saveInputs();
+    return;
+  }
+
   const lr=layerRule(layers,W,settings);
   const netW=W+H+lr.n;
   const netL=2*(L+W)+lr.glue;
@@ -945,6 +1018,7 @@ $("demo1").onclick=()=>{$("layers").value="5";$("paperCode").value="N636tN";$("L
 $("demo2").onclick=()=>{$("layers").value="5";$("paperCode").value="N526N";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
 $("clearBtn").onclick=()=>{
   ["paperCode","L","W","H","qty","manualPrice"].forEach(id=>$(id).value="");
+  updateModeUI();
   $("unitCost").textContent="—";$("quickPrice").textContent="—";$("quickRounded").textContent="—";$("resultSub").textContent="已清空";
   $("detail").textContent="暂无。";lastText="";
   renderRows([["状态","等待计算"]]);renderWarnings([]);renderPlanTable([]);saveInputs();
@@ -999,10 +1073,11 @@ document.addEventListener("click",e=>{
   }
 });
 INPUT_IDS.forEach(id=>{
-  $(id).addEventListener("change",saveInputs);
+  $(id).addEventListener("change",()=>{if(id==="layers")updateModeUI();saveInputs();});
   $(id).addEventListener("input",saveInputs);
 });
 loadInputs();
+updateModeUI();
 renderBaseTable();
 renderRulesTable();
 renderSettings();
