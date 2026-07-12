@@ -81,35 +81,28 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
 <div class="wrap">
 <header>
   <h1>瓦楞纸箱材料成本计算器</h1>
-  <div class="sub">输入层数、纸质代码、长宽高，自动计算纸板㎡单价、净宽、净长、宽度拼版、长度拼版和材料成本。</div>
+  <div class="sub">输入纸质代码和/或尺寸，系统自动识别层数、纸箱/隔板类型，并尽量计算所有可得结果。</div>
 </header>
 
 <section class="card">
-  <div class="grid">
-    <div>
-      <label for="layers">纸箱层数</label>
-      <select id="layers">
-        <option value="5">五层</option>
-        <option value="3">三层</option>
-        <option value="divider">隔板</option>
-        <option value="2">二层</option>
-        <option value="4">四层</option>
-        <option value="7">七层</option>
-      </select>
-    </div>
-    <div>
-      <label for="paperCode">纸质代码</label>
-      <input id="paperCode" type="text" placeholder="如 N636tN" autocomplete="off" />
-    </div>
+  <div>
+    <label for="paperCode">纸质代码，可选</label>
+    <input id="paperCode" type="text" placeholder="如 N636tN；只填代码可查㎡单价" autocomplete="off" />
+    <div class="hint" id="autoDetect">自动识别：纸质代码决定层数；填写高 H 按纸箱算，不填高 H 按隔板/平板算。</div>
   </div>
   <div class="grid3" style="margin-top:10px">
     <div><label for="L">长 L / mm</label><input id="L" type="number" inputmode="numeric" step="1" placeholder="300" /></div>
     <div><label for="W">宽 W / mm</label><input id="W" type="number" inputmode="numeric" step="1" placeholder="115" /></div>
     <div><label for="H">高 H / mm</label><input id="H" type="number" inputmode="numeric" step="1" placeholder="265" /></div>
   </div>
-  <div class="grid" style="margin-top:10px">
+  <div class="grid3" style="margin-top:10px">
     <div><label for="qty">数量，可选</label><input id="qty" type="number" inputmode="numeric" step="1" placeholder="如 1000" /></div>
-    <div><label for="manualPrice">手动覆盖纸板㎡单价，可选</label><input id="manualPrice" type="number" inputmode="decimal" step="0.01" placeholder="留空则自动算" /></div>
+    <div><label for="cutCount">切数，可选</label><input id="cutCount" type="number" inputmode="numeric" step="1" min="1" max="6" placeholder="送货单计价填 1-6" /></div>
+    <div><label for="deliverySquarePrice">送货单平方价，可选</label><input id="deliverySquarePrice" type="number" inputmode="decimal" step="0.0001" placeholder="如 1.2960；填了优先用它" /></div>
+  </div>
+  <div class="grid" style="margin-top:10px">
+    <div><label for="manualPrice">手动覆盖基础㎡单价，可选</label><input id="manualPrice" type="number" inputmode="decimal" step="0.01" placeholder="留空则自动算" /></div>
+    <div class="hint" style="align-self:end">送货单核算：填“送货单平方价”时，直接按该平方价算单价/金额，不再套折率和小单加价。</div>
   </div>
   <div class="grid3" style="margin-top:10px">
     <div>
@@ -211,9 +204,14 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
 
   <div id="settingsPanel" class="hide">
     <div class="grid3">
-      <div><label for="discountInput">材料成本折率</label><input id="discountInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.97" /></div>
+      <div><label for="discountInput">报价系数/折率</label><input id="discountInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="1.00" /></div>
       <div><label for="glue2Input">二层接舌 / mm</label><input id="glue2Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="25" /></div>
       <div><label for="glue3Input">三层接舌 / mm</label><input id="glue3Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="25" /></div>
+    </div>
+    <div style="margin-top:10px">
+      <label for="specialDiscountsInput">特定纸质代码折算系数，可选</label>
+      <textarea id="specialDiscountsInput" style="min-height:88px;height:88px;font-size:14px" placeholder="每行一个：N/5/2/6b/A=1.00&#10;也可写：N526bA=1.00"></textarea>
+      <div class="hint">这里的系数优先级高于上面的全局报价系数。适合恒大硬性规定的特价纸质，例如某个材质按 100 折，而其他材质按 104 折。</div>
     </div>
     <div class="grid3" style="margin-top:10px">
       <div><label for="glue4Input">四层接舌 / mm</label><input id="glue4Input" class="mini" type="number" inputmode="numeric" step="1" placeholder="30" /></div>
@@ -238,7 +236,7 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
     <div class="grid3" style="margin-top:10px">
       <div><label for="n7EvenInput">七层 W 偶数加值</label><input id="n7EvenInput" class="mini" type="number" inputmode="numeric" step="1" placeholder="4" /></div>
       <div><label for="aFluteSurchargeInput">A 楞加价 元/㎡</label><input id="aFluteSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.05" /></div>
-      <div><label for="smallOrderSurchargeInput">低于300㎡加价 元/㎡</label><input id="smallOrderSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.20" /></div>
+      <div><label for="smallOrderSurchargeInput">低于300㎡加价 元/㎡</label><input id="smallOrderSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.10" /></div>
     </div>
     <div class="grid3" style="margin-top:10px">
       <div><label for="manualScoreSurchargeInput">人工分纸压线 元/㎡</label><input id="manualScoreSurchargeInput" class="mini" type="number" inputmode="decimal" step="0.01" placeholder="0.20" /></div>
@@ -250,11 +248,11 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
       <div><label for="sevenWidthMaxInput">七层最大门幅 / mm</label><input id="sevenWidthMaxInput" class="mini" type="number" inputmode="numeric" step="50" placeholder="2200" /></div>
       <div><label>&nbsp;</label><button class="dangerBtn" id="resetSettingsBtn" type="button">恢复默认参数</button></div>
     </div>
-    <div class="hint">默认折率为 0.97。厂家文件注明：所有 A 楞品种另加 0.05 元/㎡；人工分纸压线和人工碰线各另加 0.20 元/㎡；单款订单面积低于 300㎡ 每平方米加价 0.20 元；七层门幅为 1150-2200mm。</div>
+    <div class="hint">默认报价系数为 1.00，可按恒大当期浮动折率设置；特定纸质代码系数优先于全局系数。订单计价面积超过 2000㎡且不超过 3000㎡时，在当前系数基础上再乘 0.99；超过 3000㎡时再乘 0.98。厂家文件注明：所有 A 楞品种另加 0.05 元/㎡；人工分纸压线和人工碰线各另加 0.20 元/㎡；单款订单面积低于 300㎡ 每平方米加价 0.10 元；七层门幅为 1150-2200mm。</div>
   </div>
 </section>
 
-<div class="footer">材料成本 = 纸板面积 × 纸板㎡单价 × 折率。默认折率 0.97，可在计算参数中调整。当前只代表纸板材料成本，不含印刷、粘箱、钉箱、运费、税点、利润。</div>
+<div class="footer">材料成本 = 纸板面积 × 纸板㎡单价 × 报价系数/折率。默认系数 1.00，可在计算参数中调整。当前只代表纸板材料成本，不含印刷、粘箱、钉箱、运费、税点、利润。</div>
 </div>
 
 <script>
@@ -262,8 +260,8 @@ th{position:sticky;top:0;background:#f9fafb;z-index:1}
 const $=id=>document.getElementById(id);
 const WIDTH_MIN=1300, WIDTH_MAX=2500, WIDTH_STEP=50, TRIM=25;
 const TOKEN_PATTERNS=["K1","H1","F2","6b","6t","B","D","A","K","P","Q","N","H","F","W","T","M","2","3","5","6","8"];
-const INPUT_IDS=["layers","paperCode","L","W","H","qty","manualPrice","fluteType","manualScore","manualCrease"];
-const SETTING_IDS=["discountInput","glue2Input","glue3Input","glue4Input","glue5Input","glue7Input","n2OddInput","n2EvenInput","n3OddInput","n3EvenInput","n4OddInput","n4EvenInput","n5OddInput","n5EvenInput","n7OddInput","n7EvenInput","aFluteSurchargeInput","smallOrderSurchargeInput","manualScoreSurchargeInput","manualCreaseSurchargeInput","sevenWidthMinInput","sevenWidthMaxInput"];
+const INPUT_IDS=["paperCode","L","W","H","qty","cutCount","deliverySquarePrice","manualPrice","fluteType","manualScore","manualCrease"];
+const SETTING_IDS=["discountInput","specialDiscountsInput","glue2Input","glue3Input","glue4Input","glue5Input","glue7Input","n2OddInput","n2EvenInput","n3OddInput","n3EvenInput","n4OddInput","n4EvenInput","n5OddInput","n5EvenInput","n7OddInput","n7EvenInput","aFluteSurchargeInput","smallOrderSurchargeInput","manualScoreSurchargeInput","manualCreaseSurchargeInput","sevenWidthMinInput","sevenWidthMaxInput"];
 const DEFAULT_BASE_PRICES={
   "3B":0.79,"3D":0.85,"3A":0.90,"3K1":0.95,"3N":1.14,"3W":1.24,
   "333":1.13,"B33":1.14,"B3B":1.15,"D3B":1.21,
@@ -287,7 +285,8 @@ const DEFAULT_RULE_SCOPES={
 };
 const RULE_SCOPE_LABELS={any:"不限层位",middle:"中纸",flute:"坑纸",paper:"面纸/里纸/中纸"};
 const DEFAULT_CALC_SETTINGS={
-  discount:0.97,
+  discount:1.00,
+  specialDiscounts:{"N526bA":1.00},
   glue2:25,glue3:25,glue4:30,glue5:30,glue7:30,
   n2Odd:3,n2Even:2,
   n3Odd:3,n3Even:2,
@@ -295,7 +294,7 @@ const DEFAULT_CALC_SETTINGS={
   n5Odd:5,n5Even:4,
   n7Odd:5,n7Even:4,
   aFluteSurcharge:0.05,
-  smallOrderSurcharge:0.20,
+  smallOrderSurcharge:0.10,
   manualScoreSurcharge:0.20,
   manualCreaseSurcharge:0.20,
   sevenWidthMin:1150,
@@ -311,6 +310,9 @@ function fmt(n,d=2){
 }
 function fixed(n,d){
   return Number.isFinite(n)?Number(n).toFixed(d):"—";
+}
+function round2(n){
+  return Math.round((Number(n)+Number.EPSILON)*100)/100;
 }
 function money3(n){
   return Number.isFinite(n)?Number(n).toFixed(3):"—";
@@ -375,6 +377,15 @@ function validateCalcSettings(obj){
   }
   if(Number(merged.discount)>1.5)return {ok:false,msg:"折率不应大于 1.5，请核对"};
   if(Number(merged.sevenWidthMin)>Number(merged.sevenWidthMax))return {ok:false,msg:"七层最小门幅不能大于最大门幅"};
+  if(merged.specialDiscounts!==undefined){
+    if(!merged.specialDiscounts||Array.isArray(merged.specialDiscounts)||typeof merged.specialDiscounts!=="object")return {ok:false,msg:"特定纸质代码折算系数必须是对象"};
+    for(const [code,coef] of Object.entries(merged.specialDiscounts)){
+      const parsed=parseCode(code);
+      const value=Number(coef);
+      if(!parsed.ok)return {ok:false,msg:`特定纸质代码 ${code} 无法识别：${parsed.error}`};
+      if(!Number.isFinite(value)||value<=0||value>1.5)return {ok:false,msg:`特定纸质代码 ${code} 的系数必须大于0且不大于1.5`};
+    }
+  }
   return {ok:true};
 }
 function basePrices(){
@@ -385,7 +396,23 @@ function rules(){
 }
 function calcSettings(){
   const data=getJSON("carton_v3_calc_settings",DEFAULT_CALC_SETTINGS,validateCalcSettings);
-  return {...DEFAULT_CALC_SETTINGS,...data};
+  const merged={...DEFAULT_CALC_SETTINGS,...data};
+
+  // 2026-07 恒大新规则：单款订单面积低于 300㎡ 加价从 0.20 元/㎡改为 0.10 元/㎡。
+  // 很多浏览器已经把旧参数 0.20 存进 localStorage；如果只改默认值，旧手机仍会继续显示 0.20。
+  // 这里做一次自动迁移：只有检测到旧值正好为 0.20 且尚未迁移时，才自动改成 0.10。
+  try{
+    const migrationKey="carton_v3_migrated_small_order_010";
+    if(localStorage.getItem(migrationKey)!=="1" && Number(merged.smallOrderSurcharge)===0.20){
+      merged.smallOrderSurcharge=0.10;
+      const saved={...data,smallOrderSurcharge:0.10};
+      setJSON("carton_v3_calc_settings",saved);
+      localStorage.setItem(migrationKey,"1");
+    }
+  }catch(e){}
+
+  merged.specialDiscounts=normalizeSpecialDiscounts(merged.specialDiscounts||{});
+  return merged;
 }
 function canonicalToken(t){
   if(!t)return "";
@@ -398,7 +425,12 @@ function canonicalToken(t){
   return up;
 }
 function normalizeCode(code){
-  return String(code||"").trim().replace(/\s+/g,"").replace(/[ｔＴ]/g,"t").replace(/[ｂＢ]/g,"b").replace(/[Ａ-Ｚａ-ｚ０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-65248));
+  return String(code||"").trim()
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-65248))
+    .replace(/\s+/g,"")
+    .replace(/[\/|｜,，]+/g,"")
+    .replace(/[ｔＴ]/g,"t")
+    .replace(/[ｂＢ]/g,"b");
 }
 function parseCode(code){
   const raw=normalizeCode(code);
@@ -414,6 +446,51 @@ function parseCode(code){
     i+=match.length;
   }
   return {ok:true,raw,tokens,code:tokens.join("")};
+}
+function normalizeSpecialDiscounts(obj){
+  const out={};
+  if(!obj||Array.isArray(obj)||typeof obj!=="object")return out;
+  for(const [code,coef] of Object.entries(obj)){
+    const parsed=parseCode(code);
+    const value=Number(coef);
+    if(parsed.ok&&Number.isFinite(value)&&value>0)out[parsed.code]=value;
+  }
+  return out;
+}
+function parseSpecialDiscountText(text){
+  const out={};
+  const lines=String(text||"").split(/\n+/);
+  for(const rawLine of lines){
+    const line=rawLine.trim();
+    if(!line)continue;
+    const parts=line.split(/[=：:]/);
+    if(parts.length<2)throw new Error(`特定系数格式错误：${line}`);
+    const code=parts[0].trim();
+    const coef=Number(parts.slice(1).join(":").trim());
+    const parsed=parseCode(code);
+    if(!parsed.ok)throw new Error(`特定纸质代码 ${code} 无法识别：${parsed.error}`);
+    if(!Number.isFinite(coef)||coef<=0||coef>1.5)throw new Error(`特定纸质代码 ${code} 的系数必须大于0且不大于1.5`);
+    out[parsed.code]=coef;
+  }
+  return out;
+}
+function specialDiscountsToText(obj){
+  const data=normalizeSpecialDiscounts(obj||{});
+  return Object.entries(data).sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).map(([code,coef])=>`${code}=${coef}`).join("\n");
+}
+function discountForCode(code,settings){
+  const parsed=parseCode(code||"");
+  const global=Number(settings.discount);
+  if(parsed.ok&&settings.specialDiscounts&&Object.prototype.hasOwnProperty.call(settings.specialDiscounts,parsed.code)){
+    return {value:Number(settings.specialDiscounts[parsed.code]),source:"special",code:parsed.code};
+  }
+  return {value:global,source:"global",code:parsed.ok?parsed.code:""};
+}
+function areaDiscountForOrder(orderArea){
+  if(!Number.isFinite(orderArea)||orderArea<=0)return {factor:1,label:"无面积阶梯优惠"};
+  if(orderArea>3000)return {factor:0.98,label:"订单面积超过3000㎡，再乘98折"};
+  if(orderArea>2000)return {factor:0.99,label:"订单面积超过2000㎡且不超过3000㎡，再乘99折"};
+  return {factor:1,label:"订单面积未超过2000㎡，无额外面积折扣"};
 }
 function positionType(index,total){
   if(total===2)return index===0?"flute":"paper";
@@ -604,64 +681,225 @@ function renderPlanTable(plans){
   }
   $("planTable").innerHTML=plans.map(p=>`<tr class="${p.selected?"selectedRow":""}"><td>${p.x}</td><td class="right">${fmt(p.demand,0)}mm</td><td class="right">${fmt(p.web,0)}mm</td><td class="right">${fixed(p.gross,2)}mm</td><td class="right">${p.selected?"选中":"候选"}</td></tr>`).join("");
 }
+function layerLabelByCount(count){
+  return ({2:"二层",3:"三层",4:"四层",5:"五层",7:"七层"})[count]||`${count}层`;
+}
+function supportedLayer(count){
+  return [2,3,4,5,7].includes(count);
+}
+function inferLayerFromCode(inputCode){
+  if(!inputCode)return {known:false,layers:NaN,label:"未识别",code:"",tokens:[],warning:"未输入纸质代码，无法从纸质代码识别层数。"};
+  const parsed=parseCode(inputCode);
+  if(!parsed.ok)return {known:false,layers:NaN,label:"未识别",code:normalizeCode(inputCode),tokens:[],warning:parsed.error};
+  const count=parsed.tokens.length;
+  return {known:supportedLayer(count),layers:count,label:layerLabelByCount(count),code:parsed.code,tokens:parsed.tokens,warning:supportedLayer(count)?"":`纸质代码拆为 ${count} 段，当前尺寸规则暂不支持该层数。`};
+}
 function updateModeUI(){
-  const isDivider=$("layers").value==="divider";
-  $("H").disabled=isDivider;
-  $("H").placeholder=isDivider?"隔板不填高 H":"265";
-  if(isDivider)$("H").value="";
+  const codeInfo=inferLayerFromCode($("paperCode").value.trim());
+  const hasH=Number.isFinite(num("H"))&&num("H")>0;
+  const hasCode=!!$("paperCode").value.trim();
+  const type=hasH?"纸箱":"隔板/平板";
+  const layerText=hasCode?(codeInfo.known?codeInfo.label:`未识别（${codeInfo.warning}）`):"待输入纸质代码";
+  $("H").disabled=false;
+  $("H").placeholder="不填则按隔板/平板";
+  if($("autoDetect"))$("autoDetect").textContent=`自动识别：${layerText}｜${type}`;
 }
 function calculate(){
-  const layerValue=$("layers").value;
-  const isDivider=layerValue==="divider";
-  const layers=isDivider?0:parseInt(layerValue,10);
-  const L=num("L"),W=num("W"),H=num("H"),qty=num("qty"),manual=num("manualPrice");
+  updateModeUI();
+  const L=num("L"),W=num("W"),H=num("H"),qty=num("qty"),cutCount=num("cutCount"),deliverySquareRaw=num("deliverySquarePrice"),manual=num("manualPrice");
+  const hasDeliverySquarePrice=Number.isFinite(deliverySquareRaw)&&deliverySquareRaw>0;
   const inputCode=$("paperCode").value.trim();
-  const errors=[];
-  if(!inputCode)errors.push("请填写纸质代码。");
-  if(!Number.isFinite(L)||L<=0)errors.push(isDivider?"请填写正确的隔板长。":"请填写正确的长 L。");
-  if(!Number.isFinite(W)||W<=0)errors.push(isDivider?"请填写正确的隔板宽。":"请填写正确的宽 W。");
-  if(!isDivider&&(!Number.isFinite(H)||H<=0))errors.push("请填写正确的高 H。");
-  if(errors.length){
-    $("unitCost").textContent="—";
-    $("quickPrice").textContent="—";
-    $("quickRounded").textContent="—";
-    $("resultSub").textContent="输入不完整";
-    renderRows([["状态","无法计算"]]);
-    renderPlanTable([]);
-    renderWarnings(errors,true);
-    $("detail").textContent=errors.join("\n");
-    lastText=$("detail").textContent;
-    return;
-  }
-
-  const code=parseCode(inputCode).ok?parseCode(inputCode).code:normalizeCode(inputCode);
-  const auto=derivePrice(inputCode,layers);
-  let price=auto.price;
-  let priceNote=auto.status;
-  const warnings=[...(auto.warnings||[])];
-  if(Number.isFinite(manual)&&manual>0){
-    price=manual;
-    priceNote=`手动覆盖 ${fmt(price,2)}`;
-    warnings.push("当前使用手动覆盖纸板㎡单价，自动识别结果只作为参考。");
-  }
-  if(!Number.isFinite(price)||price<=0){
-    $("unitCost").textContent="—";
-    $("quickPrice").textContent="—";
-    $("quickRounded").textContent="—";
-    $("resultSub").textContent="纸板㎡单价未知";
-    renderRows([["纸质代码",code],["自动状态",auto.status],["处理方式","请手动输入纸板㎡单价或补充数据"]]);
-    renderPlanTable([]);
-    renderWarnings(warnings.length?warnings:["纸板㎡单价未知。"],true);
-    $("detail").textContent=auto.detail;
-    lastText=$("detail").textContent;
-    saveInputs();
-    return;
-  }
-
+  const hasCode=!!inputCode;
+  const hasL=Number.isFinite(L)&&L>0;
+  const hasW=Number.isFinite(W)&&W>0;
+  const hasH=Number.isFinite(H)&&H>0;
+  const hasAnySize=hasL||hasW||hasH;
+  const hasCutCount=Number.isFinite(cutCount)&&cutCount>0;
+  const cutInt=hasCutCount?Math.round(cutCount):NaN;
+  const hasDeliveryBillingSize=hasL&&hasW&&!hasH&&hasCutCount;
+  const hasDividerSize=hasL&&hasW&&!hasH&&!hasCutCount;
+  const hasCartonSize=hasL&&hasW&&hasH;
+  const hasManualPrice=Number.isFinite(manual)&&manual>0;
+  const qtyInt=Number.isFinite(qty)&&qty>0?Math.round(qty):NaN;
   const settings=calcSettings();
   const discount=settings.discount;
-  if(isDivider){
-    const qtyInt=Number.isFinite(qty)&&qty>0?Math.round(qty):NaN;
+  const codeInfo=inferLayerFromCode(inputCode);
+  const displayCode=hasCode?(codeInfo.code||normalizeCode(inputCode)):"未输入";
+  const fallbackLayers=5;
+  const layers=codeInfo.known?codeInfo.layers:fallbackLayers;
+  const layerLabel=codeInfo.known?codeInfo.label:layerLabelByCount(fallbackLayers);
+  const warnings=[];
+  let auto={ok:false,price:NaN,status:"未计算",detail:"【纸板㎡单价】\n未输入纸质代码，无法自动计算纸板㎡单价。",warnings:[]};
+  if(hasCode){
+    auto=derivePrice(inputCode,codeInfo.known?codeInfo.layers:fallbackLayers);
+    if(auto.warnings)warnings.push(...auto.warnings);
+    if(!codeInfo.known&&codeInfo.warning)warnings.push(codeInfo.warning);
+  }
+  let price=hasManualPrice?manual:auto.price;
+  let priceNote=hasManualPrice?`手动覆盖 ${fmt(price,2)}`:auto.status;
+  if(hasManualPrice&&hasCode)warnings.push("当前使用手动覆盖纸板㎡单价，自动识别结果只作为参考。");
+  const hasPrice=Number.isFinite(price)&&price>0;
+
+  function setResult(title,sub,quickPrice,quickRounded,rows,planHtml,detail,warns=[],bad=false){
+    $("unitCost").textContent=title;
+    $("resultSub").textContent=sub;
+    $("quickPrice").textContent=quickPrice;
+    $("quickRounded").textContent=quickRounded;
+    renderRows(rows);
+    if(Array.isArray(planHtml))renderPlanTable(planHtml);else $("planTable").innerHTML=planHtml;
+    renderWarnings(warns,bad);
+    $("detail").textContent=detail;
+    lastText=detail;
+    saveInputs();
+  }
+
+  if(!hasCode&&!hasAnySize&&!hasManualPrice){
+    setResult("—","请输入纸质代码或尺寸","—","—",[["状态","等待输入"]],'<tr><td colspan="5">暂无</td></tr>',"暂无。",[],false);
+    return;
+  }
+
+  if(!hasCode&&!hasAnySize&&hasManualPrice){
+    const rows=[["计算类型","只查手动㎡单价"],["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],["提示","输入尺寸后可继续计算面积、单个成本和总价"]];
+    const detail=["【核心结果】",`手动输入纸板㎡单价：${fmt(price,2)} 元/㎡`,"未输入纸质代码和尺寸，因此只显示当前手动㎡单价。"].join("\n");
+    setResult(`${fmt(price,2)} 元/㎡`,"手动㎡单价",`${fmt(price,2)} 元/㎡`,"只查单价",rows,'<tr><td colspan="5">只输入手动㎡单价时，不计算拼版。</td></tr>',detail,[],false);
+    return;
+  }
+
+  if(hasCode&&!hasAnySize){
+    if(hasPrice){
+      const discountInfo=discountForCode(inputCode,settings);
+      const beforeDiscount=price;
+      const afterDiscount=beforeDiscount*discountInfo.value;
+      const discountSource=discountInfo.source==="special"?"特定纸质代码折算系数":"全局报价系数";
+      const rows=[
+        ["计算类型","只查纸板㎡单价"],
+        ["纸质代码",displayCode],
+        ["自动识别层数",codeInfo.known?codeInfo.label:"未识别"],
+        ["拆解",codeInfo.tokens&&codeInfo.tokens.length?codeInfo.tokens.join(" / "):"—"],
+        ["折算前㎡单价",`${fixed(beforeDiscount,4)} 元/㎡（${priceNote}）`],
+        ["采用折算系数",`${discountInfo.value}（${discountSource}）`],
+        ["折算后㎡单价",`${fixed(afterDiscount,4)} 元/㎡`],
+        ["面积阶梯优惠","未输入订单面积，本次不计算"]
+      ];
+      const detail=[
+        "【核心结果】",
+        `纸质代码：${displayCode}`,
+        `识别层数：${codeInfo.known?codeInfo.label:"未识别"}`,
+        `折算前㎡单价：${fixed(beforeDiscount,4)} 元/㎡`,
+        `采用折算系数：${discountInfo.value}（${discountSource}）`,
+        `折算后㎡单价 = ${fixed(beforeDiscount,4)} × ${discountInfo.value} = ${fixed(afterDiscount,4)} 元/㎡`,
+        "未输入尺寸和数量，无法判断订单总面积，因此不叠加2000㎡/3000㎡面积阶梯优惠，也不判断300㎡以下小单加价。",
+        "",
+        auto.detail,
+        warnings.length?`\n【提示】\n${warnings.join("\n")}`:""
+      ].filter(Boolean).join("\n");
+      setResult(`${fixed(afterDiscount,4)} 元/㎡`,`${displayCode}｜折算前 ${fixed(beforeDiscount,4)} → 折算后 ${fixed(afterDiscount,4)}`,`${fixed(afterDiscount,4)} 元/㎡`,`折算前 ${fixed(beforeDiscount,4)}`,rows,'<tr><td colspan="5">只输入纸质代码时，同时显示折算前、折算后㎡单价；因没有订单面积，不计算面积阶梯优惠。</td></tr>',detail,warnings,false);
+    }else{
+      const rows=[["计算类型","只查纸板㎡单价"],["纸质代码",displayCode],["状态","纸板㎡单价未知"],["处理方式","请补充基础型号/加价规则，或手动输入纸板㎡单价"]];
+      setResult("—",`${displayCode}｜单价未知`,"—","—",rows,'<tr><td colspan="5">单价未知，暂无拼版。</td></tr>',auto.detail,warnings.length?warnings:["纸板㎡单价未知。"],true);
+    }
+    return;
+  }
+
+  if(hasAnySize&&!(hasL&&hasW)){
+    const miss=[];
+    if(!hasL)miss.push("长 L");
+    if(!hasW)miss.push("宽 W");
+    const rows=[["状态","尺寸不足"],["已输入",[`L=${hasL?fmt(L,0):"未填"}`,`W=${hasW?fmt(W,0):"未填"}`,`H=${hasH?fmt(H,0):"未填"}`].join("，")],["还需要",miss.join("、")]];
+    const detail=["【尺寸不足】",`已输入：L=${hasL?fmt(L,0):"未填"}，W=${hasW?fmt(W,0):"未填"}，H=${hasH?fmt(H,0):"未填"}`,`至少需要长 L 和宽 W，才能计算隔板面积；需要长宽高，才能计算纸箱净宽/净长和拼版。`,hasCode?"": "未输入纸质代码，因此暂不能自动计算纸板㎡单价。",hasCode?auto.detail:""].filter(Boolean).join("\n");
+    setResult("—","尺寸不足",hasPrice?`${fmt(price,2)} 元/㎡`:"—","—",rows,'<tr><td colspan="5">尺寸不足，暂无拼版。</td></tr>',detail,warnings.concat([`尺寸不足：请至少补充 ${miss.join("、")}。`]),true);
+    return;
+  }
+
+  if(hasDeliveryBillingSize){
+    const deliveryWarnings=[...warnings];
+    if(cutInt<1||cutInt>6)deliveryWarnings.push(`切数 ${cutInt} 超出恒大常规 1-6 切范围，请核对。`);
+    if(!hasPrice&&!hasDeliverySquarePrice)deliveryWarnings.push("未输入送货单平方价，也未输入或未识别基础纸板㎡单价，因此只能计算单片计价面积，不能计算单价/金额。");
+    if(!Number.isFinite(qtyInt))deliveryWarnings.push("未填写数量时，只计算单片计价面积和单价，不计算金额。");
+    const billingArea=L*W/1000000/cutInt;
+    const deliveryOrderArea=Number.isFinite(qtyInt)?billingArea*qtyInt:NaN;
+    const smallOrderAdd=(!hasDeliverySquarePrice)&&hasPrice&&Number.isFinite(deliveryOrderArea)&&deliveryOrderArea<300?settings.smallOrderSurcharge:0;
+    const discountInfo=discountForCode(inputCode,settings);
+    const baseDiscount=discountInfo.value;
+    const areaDiscount=areaDiscountForOrder(deliveryOrderArea);
+    const appliedDiscount=baseDiscount*areaDiscount.factor;
+    const squarePriceBeforeAreaDiscount=hasPrice?price*baseDiscount+smallOrderAdd:NaN;
+    const squarePrice=hasDeliverySquarePrice?deliverySquareRaw:(hasPrice?price*appliedDiscount+smallOrderAdd:NaN);
+    const hasBillingPrice=Number.isFinite(squarePrice)&&squarePrice>0;
+    const unitRaw=hasBillingPrice?billingArea*squarePrice:NaN;
+    const unit2=hasBillingPrice?round2(unitRaw):NaN;
+    const total=hasBillingPrice&&Number.isFinite(qtyInt)?round2(unit2*qtyInt):NaN;
+    const totalRaw=hasBillingPrice&&Number.isFinite(qtyInt)?unitRaw*qtyInt:NaN;
+    if(hasDeliverySquarePrice)deliveryWarnings.push("当前优先使用手动输入的送货单平方价；该平方价视为最终平方价，不再乘报价系数，也不再自动加小单加价。");
+    if(!hasDeliverySquarePrice&&hasPrice&&discountInfo.source==="special")deliveryWarnings.push(`当前纸质代码 ${discountInfo.code} 使用特定折算系数 ${baseDiscount}，优先于全局报价系数 ${discount}。`);
+    if(!hasDeliverySquarePrice&&hasPrice&&areaDiscount.factor<1)deliveryWarnings.push(`${areaDiscount.label}；最终采用折算系数 ${fixed(appliedDiscount,4)} = ${baseDiscount} × ${areaDiscount.factor}。`);
+    if(!hasDeliverySquarePrice&&smallOrderAdd>0)deliveryWarnings.push(`订单面积 ${fixed(deliveryOrderArea,2)}㎡ 低于 300㎡，已按当前参数加 ${fmt(smallOrderAdd,2)} 元/㎡。`);
+    const rows=[
+      ["计算类型","送货单计价"],
+      ["纸质代码",displayCode],
+      ["自动识别层数",hasCode?(codeInfo.known?codeInfo.label:"未识别"):"未输入"],
+      ["计价尺寸",`${fmt(L,0)}×${fmt(W,0)}mm`],
+      ["切数",`${cutInt} 切`],
+      ["单片计价面积",`${fixed(billingArea,5)}㎡`]
+    ];
+    if(hasDeliverySquarePrice){
+      rows.push(
+        ["送货单平方价",`${fixed(squarePrice,4)} 元/㎡`],
+        ["平方价来源","手动输入，优先采用"],
+        ["报价系数/折率","不参与本次计算"],
+        ["小单加价","不自动叠加"]
+      );
+    }else if(hasPrice){
+      rows.push(
+        ["基础㎡单价",`${fmt(price,4)} 元/㎡（${priceNote}）`],
+        ["基础折算系数",`${baseDiscount}（${discountInfo.source==="special"?"特定纸质代码":"全局"}）`],
+        ["面积阶梯系数",`${areaDiscount.factor}（${areaDiscount.label}）`],
+        ["最终折算系数",`${fixed(appliedDiscount,4)}`],
+        ["面积优惠前平方价",`${fixed(squarePriceBeforeAreaDiscount,4)} 元/㎡`],
+        ["小单加价",`${fmt(smallOrderAdd,2)} 元/㎡`],
+        ["最终平方价",`${fixed(squarePrice,4)} 元/㎡`]
+      );
+    }
+    if(hasBillingPrice){
+      rows.push(
+        ["未取整单价",`${fixed(unitRaw,4)} 元/张`],
+        ["单价",`${fixed(unit2,2)} 元/张`]
+      );
+    }
+    if(Number.isFinite(qtyInt)){
+      rows.push(["数量",`${qtyInt} 张`],["订单计价面积",`${fixed(deliveryOrderArea,2)}㎡`]);
+      if(hasBillingPrice)rows.push(["金额",`${fixed(total,2)} 元`],["未按两位单价取整金额",`${fixed(totalRaw,2)} 元`]);
+    }
+    const detail=[
+      "【核心结果】",
+      "计算类型：送货单计价模式",
+      `纸质代码：${displayCode}`,
+      hasCode?`识别层数：${codeInfo.known?codeInfo.label:"未识别"}`:"纸质代码：未输入",
+      `计价尺寸：${fmt(L,0)}×${fmt(W,0)}mm`,
+      `切数：${cutInt}`,
+      `单片计价面积：${fixed(billingArea,5)}㎡`,
+      hasDeliverySquarePrice?`送货单平方价：${fixed(squarePrice,4)} 元/㎡（手动优先）`:(hasPrice?`基础㎡单价：${fmt(price,4)} 元/㎡`:"基础㎡单价：未知"),
+      hasDeliverySquarePrice?"报价系数/折率：本次不参与；小单加价：本次不自动叠加":(hasPrice?`基础折算系数：${baseDiscount}（${discountInfo.source==="special"?"特定纸质代码":"全局"}）；面积阶梯系数：${areaDiscount.factor}；最终折算系数：${fixed(appliedDiscount,4)}`:""),
+      hasDeliverySquarePrice?`平方价 = 手动送货单平方价 = ${fixed(squarePrice,4)} 元/㎡`:(hasPrice?`最终平方价 = ${fmt(price,4)} × ${baseDiscount} × ${areaDiscount.factor} + ${fmt(smallOrderAdd,2)} = ${fixed(squarePrice,4)} 元/㎡`:""),
+      hasBillingPrice?`单价 = ${fixed(billingArea,5)} × ${fixed(squarePrice,4)} = ${fixed(unitRaw,4)} 元/张 ≈ ${fixed(unit2,2)} 元/张`:"",
+      Number.isFinite(qtyInt)?`数量：${qtyInt} 张`:"数量：未填",
+      Number.isFinite(total)?`金额 = ${fixed(unit2,2)} × ${qtyInt} = ${fixed(total,2)} 元`:"",
+      "",
+      hasCode?auto.detail:"【纸板㎡单价】\n未输入纸质代码。",
+      "",
+      "【送货单计价公式】",
+      `单片计价面积 = 计价长 × 计价宽 ÷ 1000000 ÷ 切数`,
+      `单片计价面积 = ${fmt(L,0)} × ${fmt(W,0)} ÷ 1000000 ÷ ${cutInt} = ${fixed(billingArea,5)}㎡`,
+      hasDeliverySquarePrice?"平方价 = 手动输入的送货单平方价":(hasPrice?"平方价 = 基础㎡单价 × 基础折算系数 × 面积阶梯系数 + 小单加价":""),
+      hasBillingPrice?"单价 = 单片计价面积 × 平方价，按送货单习惯保留 2 位":"",
+      hasBillingPrice&&Number.isFinite(qtyInt)?"金额 = 两位单价 × 数量":"",
+      deliveryWarnings.length?`\n【提示】\n${deliveryWarnings.join("\n")}`:""
+    ].filter(Boolean).join("\n");
+    setResult(hasBillingPrice?`${fixed(unit2,2)} 元/张`:`${fixed(billingArea,5)}㎡`,`送货单计价｜${hasCode?displayCode:"未输纸质"}｜${fmt(L,0)}×${fmt(W,0)}÷${cutInt}`,hasBillingPrice?`${fixed(squarePrice,4)} 元/㎡`:"—",hasBillingPrice?`${Number.isFinite(total)?fixed(total,2)+" 元":fixed(unit2,2)+" 元/张"}`:"面积模式",rows,'<tr><td colspan="5">送货单计价模式直接按“计价尺寸 ÷ 切数”核算；填写送货单平方价时优先使用该平方价。</td></tr>',detail,deliveryWarnings,!hasBillingPrice&&hasCode);
+    return;
+  }
+
+  if(hasDividerSize){
     const fluteType=$("fluteType").value;
     const aFluteAdd=fluteType.includes("A")?settings.aFluteSurcharge:0;
     const manualScoreAdd=$("manualScore").value==="1"?settings.manualScoreSurcharge:0;
@@ -669,227 +907,203 @@ function calculate(){
     const area=L*W/1000000;
     const orderArea=Number.isFinite(qtyInt)?area*qtyInt:NaN;
     const orderLength=Number.isFinite(qtyInt)?L*qtyInt/1000:NaN;
-    const smallOrderAdd=Number.isFinite(orderArea)&&orderArea<300?settings.smallOrderSurcharge:0;
-    const effectivePrice=price+aFluteAdd+manualScoreAdd+manualCreaseAdd+smallOrderAdd;
-    const unit=area*effectivePrice*discount;
-    const total=Number.isFinite(qtyInt)?unit*qtyInt:NaN;
+    const smallOrderAdd=hasPrice&&Number.isFinite(orderArea)&&orderArea<300?settings.smallOrderSurcharge:0;
+    const effectivePrice=hasPrice?price+aFluteAdd+manualScoreAdd+manualCreaseAdd+smallOrderAdd:NaN;
+    // 隔板/平板模式的最终折后计价平方米单价。
+    // 原版本在详细结果中引用了未定义的 finalSquarePrice，导致点击“立即计算”时脚本中断。
+    const finalSquarePrice=hasPrice?effectivePrice*discount:NaN;
+    const unit=hasPrice?area*finalSquarePrice:NaN;
+    const total=hasPrice&&Number.isFinite(qtyInt)?round2(round2(unit)*qtyInt):NaN;
     const dividerWarnings=[...warnings];
-    if(!fluteType)dividerWarnings.push("未选择楞型，默认不计算 A 楞另加价；若隔板为 A、BA 或 BCA 楞，请选择对应楞型。");
+    if(!hasPrice)dividerWarnings.push("未输入或未识别纸板㎡单价，因此只计算面积，不计算单张价格/总价。可输入纸质代码或手动覆盖㎡单价。");
+    if(hasPrice&&!fluteType)dividerWarnings.push("未选择楞型，默认不计算 A 楞另加价；若隔板为 A、BA 或 BCA 楞，请选择对应楞型。");
     if(Number.isFinite(qtyInt)&&qtyInt<20)dividerWarnings.push(`隔板数量 ${qtyInt} 张低于厂家文件要求的 20 张，请向纸厂确认是否接单。`);
     if(Number.isFinite(orderLength)&&orderLength<30)dividerWarnings.push(`隔板订单长度 ${fixed(orderLength,2)} 米低于厂家文件要求的 30 米，请向纸厂确认是否接单。`);
     if(smallOrderAdd>0)dividerWarnings.push(`隔板订单面积 ${fixed(orderArea,2)}㎡ 低于 300㎡，已按厂家文件加 ${fmt(smallOrderAdd,2)} 元/㎡。`);
-    if(!Number.isFinite(qtyInt))dividerWarnings.push("未填写数量时，只计算单张隔板理论材料成本。");
-    $("unitCost").textContent=`${money3(unit)} 元/张`;
-    $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
-    $("quickRounded").textContent=`${fixed(unit,2)} 元/张`;
-    $("resultSub").textContent=`隔板｜${code}｜${fmt(L,0)}×${fmt(W,0)}mm`;
+    if(!Number.isFinite(qtyInt))dividerWarnings.push("未填写数量时，只计算单张隔板数据。填写数量后可计算订单面积/总价。" );
     const rows=[
-      ["物料类型","隔板"],
-      ["隔板型号",code],
-      ["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],
-      ["A楞加价",`${fmt(aFluteAdd,2)} 元/㎡`],
-      ["人工工序加价",`${fmt(manualScoreAdd+manualCreaseAdd,2)} 元/㎡`],
-      ["小单加价",`${fmt(smallOrderAdd,2)} 元/㎡`],
-      ["计价㎡单价",`${fmt(effectivePrice,2)} 元/㎡`],
-      ["材料成本折率",String(discount)],
+      ["计算类型","隔板/平板"],
+      ["纸质代码",displayCode],
+      ["自动识别层数",hasCode?(codeInfo.known?codeInfo.label:"未识别"):"未输入"],
       ["隔板长",`${fmt(L,0)}mm`],
       ["隔板宽",`${fmt(W,0)}mm`],
-      ["单张面积",`${fixed(area,5)}㎡`],
-      ["单张隔板材料成本",`${money3(unit)} 元/张`],
-      ["两位参考",`${fixed(unit,2)} 元/张`]
+      ["单张净面积",`${fixed(area,5)}㎡`]
     ];
-    if(Number.isFinite(qtyInt)){
-      rows.push(["数量",`${qtyInt} 张`],["订单面积",`${fixed(orderArea,2)}㎡`],["订单长度",`${fixed(orderLength,2)} 米`],["总材料成本",`${fixed(total,2)} 元`]);
+    if(hasPrice){
+      rows.splice(3,0,["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],["A楞加价",`${fmt(aFluteAdd,2)} 元/㎡`],["人工工序加价",`${fmt(manualScoreAdd+manualCreaseAdd,2)} 元/㎡`],["小单加价",`${fmt(smallOrderAdd,2)} 元/㎡`],["计价㎡单价",`${fmt(effectivePrice,2)} 元/㎡`],["材料成本折率",String(discount)]);
+      rows.push(["单张隔板材料成本",`${money3(unit)} 元/张`],["两位参考",`${fixed(unit,2)} 元/张`]);
     }
-    renderRows(rows);
-    $("planTable").innerHTML='<tr><td colspan="5">隔板按平面面积计价，不参与纸箱门幅拼版。</td></tr>';
-    renderWarnings(dividerWarnings);
+    if(Number.isFinite(qtyInt)){
+      rows.push(["数量",`${qtyInt} 张`],["订单面积",`${fixed(orderArea,2)}㎡`],["订单长度",`${fixed(orderLength,2)} 米`]);
+      if(hasPrice)rows.push(["总材料成本",`${fixed(total,2)} 元`]);
+    }
     const detail=[
       "【核心结果】",
-      "物料类型：隔板",
-      `隔板型号：${code}`,
+      "计算类型：隔板/平板",
+      `纸质代码：${displayCode}`,
+      hasCode?`识别层数：${codeInfo.known?codeInfo.label:"未识别"}`:"纸质代码：未输入",
       `尺寸：${fmt(L,0)}×${fmt(W,0)}mm`,
-      `纸板㎡单价：${fmt(price,2)} 元/㎡`,
-      `计价㎡单价：${fmt(effectivePrice,2)} 元/㎡`,
-      `单张隔板材料成本：${money3(unit)} 元/张`,
-      Number.isFinite(qtyInt)?`总材料成本：${fixed(total,2)} 元`:"数量：未填",
+      `单张净面积：${fixed(area,5)}㎡`,
+      hasPrice?`折算前基础㎡单价：${fixed(price,4)} 元/㎡`:"纸板㎡单价：未知",
+      hasPrice?`折后计价平方米单价：${fixed(finalSquarePrice,4)} 元/㎡`:"",
+      hasPrice?`单张隔板材料成本：${money3(unit)} 元/张`:"",
+      Number.isFinite(qtyInt)?`数量：${qtyInt} 张`:"数量：未填",
+      Number.isFinite(total)?`总材料成本：${fixed(total,2)} 元`:"",
       "",
-      auto.detail,
+      hasCode?auto.detail:"【纸板㎡单价】\n未输入纸质代码。",
       "",
       "【隔板面积】",
       `面积 = ${fmt(L,0)} × ${fmt(W,0)} ÷ 1000000 = ${fixed(area,5)}㎡`,
-      "",
-      "【材料成本】",
-      `计价㎡单价 = ${fmt(price,2)} + ${fmt(aFluteAdd,2)} + ${fmt(manualScoreAdd,2)} + ${fmt(manualCreaseAdd,2)} + ${fmt(smallOrderAdd,2)} = ${fmt(effectivePrice,2)} 元/㎡`,
-      `单张隔板材料成本 = ${fixed(area,5)} × ${fmt(effectivePrice,2)} × ${discount} = ${money3(unit)} 元/张`,
+      hasPrice?"\n【材料成本】":"",
+      hasPrice?`计价㎡单价 = ${fmt(price,2)} + ${fmt(aFluteAdd,2)} + ${fmt(manualScoreAdd,2)} + ${fmt(manualCreaseAdd,2)} + ${fmt(smallOrderAdd,2)} = ${fmt(effectivePrice,2)} 元/㎡`:"",
+      hasPrice?`单张隔板材料成本 = ${fixed(area,5)} × ${fixed(finalSquarePrice,4)} = ${money3(unit)} 元/张`:"",
       Number.isFinite(qtyInt)?`订单面积 = ${fixed(area,5)} × ${qtyInt} = ${fixed(orderArea,2)}㎡`:"",
       Number.isFinite(qtyInt)?`订单长度 = ${fmt(L,0)} × ${qtyInt} ÷ 1000 = ${fixed(orderLength,2)} 米`:"",
-      Number.isFinite(qtyInt)?`总材料成本 = ${money3(unit)} × ${qtyInt} = ${fixed(total,2)} 元`:"",
-      dividerWarnings.length?`\n【风险提示】\n${dividerWarnings.join("\n")}`:""
+      Number.isFinite(total)?`总材料成本 = ${money3(unit)} × ${qtyInt} = ${fixed(total,2)} 元`:"",
+      dividerWarnings.length?`\n【提示】\n${dividerWarnings.join("\n")}`:""
     ].filter(Boolean).join("\n");
-    $("detail").textContent=detail;
-    lastText=detail;
-    saveInputs();
+    setResult(hasPrice?`${money3(unit)} 元/张`:`${fixed(area,5)}㎡`,`隔板/平板｜${hasCode?displayCode:"未输纸质"}｜${fmt(L,0)}×${fmt(W,0)}mm`,hasPrice?`${fmt(price,2)} 元/㎡`:"—",hasPrice?`${fixed(unit,2)} 元/张`:"面积模式",rows,'<tr><td colspan="5">隔板/平板按平面面积计价，不参与纸箱门幅拼版。</td></tr>',detail,dividerWarnings,!hasPrice&&hasCode);
     return;
   }
 
-  const lr=layerRule(layers,W,settings);
-  const netW=W+H+lr.n;
-  const netL=2*(L+W)+lr.glue;
-  const half=(W+lr.n)/2;
-  const limits=widthLimits(layers,settings);
-  const widthPlans=bestWidth(netW,limits);
-  if(!widthPlans.best){
-    $("unitCost").textContent="—";
-    $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
-    $("quickRounded").textContent="—";
-    $("resultSub").textContent="净宽过大";
-    renderRows([["纸质代码",code],["纸板㎡单价",`${fmt(price,2)} 元/㎡`],["净宽",`${fmt(netW,0)}mm`],["状态","无法拼版"]]);
-    renderPlanTable([]);
-    renderWarnings([`净宽过大，在 ${limits.min}-${limits.max}mm 门幅内无法拼版。`].concat(warnings),true);
-    $("detail").textContent=auto.detail;
-    lastText=$("detail").textContent;
-    saveInputs();
+  if(hasCartonSize){
+    const cartonWarnings=[...warnings];
+    if(!codeInfo.known)cartonWarnings.push(`未能从纸质代码识别层数，尺寸计算暂按${layerLabel}参数估算；若不是五层，请输入可识别的纸质代码。`);
+    const lr=layerRule(layers,W,settings);
+    const netW=W+H+lr.n;
+    const netL=2*(L+W)+lr.glue;
+    const half=(W+lr.n)/2;
+    const limits=widthLimits(layers,settings);
+    const widthPlans=bestWidth(netW,limits);
+    if(!widthPlans.best){
+      const rows=[["计算类型","纸箱尺寸"],["纸质代码",displayCode],["尺寸",`${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`],["净宽",`${fmt(netW,0)}mm`],["净长",`${fmt(netL,0)}mm`],["状态","门幅范围内无法拼版"]];
+      const detail=["【纸箱尺寸】",`尺寸：${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`,`层数规则：${lr.label}`,`净宽 = ${W} + ${H} + ${lr.n} = ${fmt(netW,0)}mm`,`净长 = 2 × (${L} + ${W}) + ${lr.glue} = ${fmt(netL,0)}mm`,`门幅范围：${limits.min}-${limits.max}mm`,`净宽过大，无法拼版。`,hasCode?auto.detail:""].filter(Boolean).join("\n");
+      setResult("—","净宽过大",hasPrice?`${fmt(price,2)} 元/㎡`:"—","—",rows,[],detail,cartonWarnings.concat([`净宽过大，在 ${limits.min}-${limits.max}mm 门幅内无法拼版。`]),true);
+      return;
+    }
+    const best=widthPlans.best;
+    const widthX=best.x;
+    const lengthY=netL>=600?1:Math.ceil(600/netL);
+    const lengthSpliced=lengthY>1;
+    const grossW=best.gross;
+    const grossL=netL*lengthY;
+    const sheetCountPerBoard=widthX*lengthY;
+    const bigSheetArea=best.web*grossL/1000000;
+    const theoreticalArea=bigSheetArea/sheetCountPerBoard;
+    const productionSheets=Number.isFinite(qtyInt)?Math.ceil(qtyInt/sheetCountPerBoard):NaN;
+    const actualCutQty=Number.isFinite(productionSheets)?productionSheets*sheetCountPerBoard:NaN;
+    const surplusQty=Number.isFinite(actualCutQty)?actualCutQty-qtyInt:NaN;
+    const orderArea=Number.isFinite(productionSheets)?bigSheetArea*productionSheets:NaN;
+    const fluteType=$("fluteType").value;
+    const aFluteAdd=hasPrice&&fluteType.includes("A")?settings.aFluteSurcharge:0;
+    const manualScoreAdd=hasPrice&&$("manualScore").value==="1"?settings.manualScoreSurcharge:0;
+    const manualCreaseAdd=hasPrice&&$("manualCrease").value==="1"?settings.manualCreaseSurcharge:0;
+    const smallOrderAdd=hasPrice&&Number.isFinite(orderArea)&&orderArea<300?settings.smallOrderSurcharge:0;
+    const discountInfo=discountForCode(inputCode,settings);
+    const baseDiscount=discountInfo.value;
+    const areaDiscount=areaDiscountForOrder(orderArea);
+    const appliedDiscount=baseDiscount*areaDiscount.factor;
+    const discountedBasePrice=hasPrice?price*appliedDiscount:NaN;
+    const finalSquarePrice=hasPrice?discountedBasePrice+aFluteAdd+manualScoreAdd+manualCreaseAdd+smallOrderAdd:NaN;
+    const bigSheetCostRaw=hasPrice?bigSheetArea*finalSquarePrice:NaN;
+    const bigSheetCost=hasPrice?round2(bigSheetCostRaw):NaN;
+    const theoreticalUnit=hasPrice?bigSheetCost/sheetCountPerBoard:NaN;
+    const total=hasPrice&&Number.isFinite(productionSheets)?round2(bigSheetCost*productionSheets):NaN;
+    const actualUnit=hasPrice&&Number.isFinite(total)?total/qtyInt:NaN;
+    if(lr.assumption)cartonWarnings.push(lr.assumption);
+    if(lengthSpliced)cartonWarnings.push(`原净长 ${fmt(netL,0)}mm 低于 600mm，已自动按 y=${lengthY} 拼长，拼长后毛长 ${fmt(grossL,0)}mm。`);
+    if(grossL>3500)cartonWarnings.push("毛长超过 3500mm，可能超出常规生产范围，请向纸厂确认。");
+    if(hasPrice&&!fluteType)cartonWarnings.push("未选择楞型，默认不计算 A 楞另加价；若为 A、BA 或 BCA 楞，请选择对应楞型。");
+    if(!hasPrice)cartonWarnings.push("未输入或未识别纸板㎡单价，因此只计算尺寸、拼版和面积，不计算单个价格/总价。可输入纸质代码或手动覆盖㎡单价。" );
+    if(Number.isFinite(productionSheets)&&productionSheets<20)cartonWarnings.push(`生产大张数 ${productionSheets} 张低于厂家文件要求的 20 张，请向纸厂确认是否接单。`);
+    const orderLength=Number.isFinite(productionSheets)?productionSheets*grossL/1000:NaN;
+    if(Number.isFinite(orderLength)&&orderLength<30)cartonWarnings.push(`订单长度 ${fixed(orderLength,2)} 米低于厂家文件要求的 30 米，请向纸厂确认是否接单。`);
+    if(discountInfo.source==="special")cartonWarnings.push(`当前纸质代码 ${discountInfo.code} 使用特定折算系数 ${baseDiscount}，优先于全局报价系数 ${discount}。`);
+    if(areaDiscount.factor<1)cartonWarnings.push(`${areaDiscount.label}；最终采用折算系数 ${fixed(appliedDiscount,4)} = ${baseDiscount} × ${areaDiscount.factor}。`);
+    if(smallOrderAdd>0)cartonWarnings.push(`单款订单面积 ${fixed(orderArea,2)}㎡ 低于 300㎡，已按厂家文件加 ${fmt(smallOrderAdd,2)} 元/㎡。`);
+    if(!Number.isFinite(qtyInt))cartonWarnings.push("未填写数量时，只计算单个理论面积/理论成本，不计算尾数损耗。" );
+    const rows=[
+      ["计算类型","纸箱"],
+      ["纸质代码",displayCode],
+      ["自动识别层数",hasCode?(codeInfo.known?codeInfo.label:"未识别，暂按五层"):"未输入，暂按五层"],
+      ["尺寸",`${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`]
+    ];
+    if(hasPrice){
+      rows.push(
+        ["折算前基础㎡单价",`${fixed(price,4)} 元/㎡（${priceNote}）`],
+        ["基础折算系数",`${baseDiscount}（${discountInfo.source==="special"?"特定纸质代码":"全局"}）`],
+        ["面积阶梯系数",`${areaDiscount.factor}（${areaDiscount.label}）`],
+        ["最终折算系数",`${fixed(appliedDiscount,4)}`],
+        ["折后基础㎡单价",`${fixed(discountedBasePrice,4)} 元/㎡`],
+        ["A楞加价",`${fmt(aFluteAdd,2)} 元/㎡`],
+        ["人工工序加价",`${fmt(manualScoreAdd+manualCreaseAdd,2)} 元/㎡`],
+        ["小单加价",`${fmt(smallOrderAdd,2)} 元/㎡`],
+        ["折后计价平方米单价",`${fixed(finalSquarePrice,4)} 元/㎡`]
+      );
+    }
+    rows.push(["净宽",`${fmt(netW,0)}mm`],["净长",`${fmt(netL,0)}mm`],["半盖宽",`${fmt(half,2)}mm`],["宽度拼版倍数 x",String(widthX)],["长度拼版倍数 y",String(lengthY)],["是否触发拼长",lengthSpliced?"是":"否"],["实际门幅",`${fmt(best.web,0)}mm`],["毛宽",`${fixed(grossW,2)}mm`],["毛长",`${fmt(grossL,0)}mm`],["单张大纸板可裁数量",`${sheetCountPerBoard} 个`],["单张大纸板面积",`${fixed(bigSheetArea,5)}㎡`],["理论单个计价面积",`${fixed(theoreticalArea,5)}㎡/个`]);
+    if(hasPrice)rows.push(["单张大纸板成本",`${fixed(bigSheetCost,2)} 元`],["理论单个材料成本",`${money3(theoreticalUnit)} 元/个`]);
+    if(Number.isFinite(qtyInt)){
+      rows.push(["数量",`${qtyInt} 个`],["生产大张数",`${productionSheets} 张`],["实际可裁数量",`${actualCutQty} 个`],["余量数量",`${surplusQty} 个`],["订单面积",`${fixed(orderArea,2)}㎡`],["订单长度",`${fixed(orderLength,2)} 米`]);
+      if(hasPrice)rows.push(["总材料成本",`${fixed(total,2)} 元`],["实际平均单个成本",`${money3(actualUnit)} 元/个`]);
+    }
+    const planText=widthPlans.plans.map(p=>`x=${p.x}：需求门幅 ${fmt(p.demand,0)}mm，实际门幅 ${fmt(p.web,0)}mm，毛宽 ${fixed(p.gross,2)}mm，${p.selected?"选中":"候选"}`).join("\n");
+    const detail=[
+      "【核心结果】",
+      "计算类型：纸箱",
+      `纸质代码：${displayCode}`,
+      `层数规则：${hasCode?(codeInfo.known?codeInfo.label:"未识别，暂按五层"):"未输入，暂按五层"}`,
+      `尺寸：${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`,
+      hasPrice?`纸板㎡单价：${fmt(price,2)} 元/㎡`:"纸板㎡单价：未知",
+      hasPrice?`折后计价平方米单价：${fixed(finalSquarePrice,4)} 元/㎡`:"",
+      `理论单个计价面积：${fixed(theoreticalArea,5)}㎡/个`,
+      hasPrice?`理论单个材料成本：${money3(theoreticalUnit)} 元/个`:"",
+      Number.isFinite(actualUnit)?`实际平均单个成本：${money3(actualUnit)} 元/个`:"",
+      Number.isFinite(total)?`总材料成本：${fixed(total,2)} 元`:"",
+      "",
+      hasCode?auto.detail:"【纸板㎡单价】\n未输入纸质代码。",
+      "",
+      "【尺寸计算】",
+      `层数：${lr.label}`,
+      `W = ${W}，为${lr.odd?"奇数":"偶数"}，n = ${lr.n}（来自计算参数）`,
+      `净宽 = ${W} + ${H} + ${lr.n} = ${fmt(netW,0)}mm`,
+      `净长 = 2 × (${L} + ${W}) + ${lr.glue} = ${fmt(netL,0)}mm`,
+      `半盖宽 = (${W} + ${lr.n}) ÷ 2 = ${fmt(half,2)}mm`,
+      `压线结构 = ${fmt(half,2)} + ${H} + ${fmt(half,2)}`,
+      lr.assumption,
+      "",
+      "【拼版计算】",
+      `门幅范围 ${limits.min}-${limits.max}mm，每 50mm 一档；优先选择最靠近最大门幅的可行排法；同门幅优先 x 更大。`,
+      planText,
+      `宽度拼版倍数 x = ${widthX}`,
+      `需求门幅 = ${widthX} × ${fmt(netW,0)} + ${TRIM} = ${fmt(best.demand,0)}mm`,
+      `实际门幅 = ${fmt(best.web,0)}mm`,
+      `毛宽 = ${fmt(best.web,0)} ÷ ${widthX} = ${fixed(grossW,2)}mm`,
+      `原净长 = ${fmt(netL,0)}mm`,
+      `长度拼版倍数 y = ${lengthY}`,
+      `拼长后毛长 = ${fmt(netL,0)} × ${lengthY} = ${fmt(grossL,0)}mm`,
+      `单张大纸板可裁数量 = ${widthX} × ${lengthY} = ${sheetCountPerBoard} 个`,
+      "",
+      "【计价面积】",
+      `单张大纸板面积 = ${fmt(best.web,0)} × ${fmt(grossL,0)} ÷ 1000000 = ${fixed(bigSheetArea,5)}㎡`,
+      `理论单个计价面积 = ${fixed(bigSheetArea,5)} ÷ ${sheetCountPerBoard} = ${fixed(theoreticalArea,5)}㎡/个`,
+      hasPrice?"\n【材料成本】":"",
+      hasPrice?`折后计价平方米单价 = ${fixed(price,4)} × ${baseDiscount} × ${areaDiscount.factor} + ${fmt(aFluteAdd,2)} + ${fmt(manualScoreAdd,2)} + ${fmt(manualCreaseAdd,2)} + ${fmt(smallOrderAdd,2)} = ${fixed(finalSquarePrice,4)} 元/㎡`:"",
+      hasPrice?`单张大纸板未取整成本 = ${fixed(bigSheetArea,5)} × ${fixed(finalSquarePrice,4)} = ${fixed(bigSheetCostRaw,4)} 元`:"",
+      hasPrice?`单张大纸板成本（按送货单规则保留2位） = ${fixed(bigSheetCost,2)} 元`:"",
+      hasPrice?`理论单个材料成本 = ${fixed(bigSheetCost,2)} ÷ ${sheetCountPerBoard} = ${money3(theoreticalUnit)} 元/个`:"",
+      Number.isFinite(qtyInt)?`生产大张数 = ceil(${qtyInt} ÷ ${sheetCountPerBoard}) = ${productionSheets} 张`:"未填写数量时，不计算尾数损耗。",
+      Number.isFinite(qtyInt)?`实际可裁数量 = ${productionSheets} × ${sheetCountPerBoard} = ${actualCutQty} 个`:"",
+      Number.isFinite(qtyInt)?`余量数量 = ${actualCutQty} - ${qtyInt} = ${surplusQty} 个`:"",
+      Number.isFinite(qtyInt)?`订单面积 = ${fixed(bigSheetArea,5)} × ${productionSheets} = ${fixed(orderArea,2)}㎡`:"",
+      Number.isFinite(qtyInt)?`订单长度 = ${productionSheets} × ${fmt(grossL,0)} ÷ 1000 = ${fixed(orderLength,2)} 米`:"",
+      Number.isFinite(total)?`总材料成本 = ${fixed(bigSheetCost,2)} × ${productionSheets} = ${fixed(total,2)} 元`:"",
+      Number.isFinite(actualUnit)?`实际平均单个成本 = ${fixed(total,2)} ÷ ${qtyInt} = ${money3(actualUnit)} 元/个`:"",
+      cartonWarnings.length?`\n【提示】\n${cartonWarnings.join("\n")}`:""
+    ].filter(Boolean).join("\n");
+    setResult(hasPrice?`${money3(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit)} 元/个`:`${fixed(theoreticalArea,5)}㎡/个`,`${hasCode?displayCode:"未输纸质"}｜${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`,hasPrice?`${fixed(finalSquarePrice,4)} 元/㎡`:"—",hasPrice?`${fixed(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit,2)} 元/个`:"面积模式",rows,widthPlans.plans,detail,cartonWarnings,false);
     return;
   }
-
-  const best=widthPlans.best;
-  const widthX=best.x;
-  const lengthY=netL>=600?1:Math.ceil(600/netL);
-  const lengthSpliced=lengthY>1;
-  const grossW=best.gross;
-  const grossWForCalc=Number(grossW.toFixed(2));
-  const grossL=netL*lengthY;
-  const sheetCountPerBoard=widthX*lengthY;
-  const bigSheetArea=best.web*grossL/1000000;
-  const qtyInt=Number.isFinite(qty)&&qty>0?Math.round(qty):NaN;
-  const productionSheets=Number.isFinite(qtyInt)?Math.ceil(qtyInt/sheetCountPerBoard):NaN;
-  const actualCutQty=Number.isFinite(productionSheets)?productionSheets*sheetCountPerBoard:NaN;
-  const surplusQty=Number.isFinite(actualCutQty)?actualCutQty-qtyInt:NaN;
-  const orderArea=Number.isFinite(productionSheets)?bigSheetArea*productionSheets:NaN;
-  const fluteType=$("fluteType").value;
-  const aFluteAdd=fluteType.includes("A")?settings.aFluteSurcharge:0;
-  const manualScoreAdd=$("manualScore").value==="1"?settings.manualScoreSurcharge:0;
-  const manualCreaseAdd=$("manualCrease").value==="1"?settings.manualCreaseSurcharge:0;
-  const smallOrderAdd=Number.isFinite(orderArea)&&orderArea<300?settings.smallOrderSurcharge:0;
-  const effectivePrice=price+aFluteAdd+manualScoreAdd+manualCreaseAdd+smallOrderAdd;
-  const bigSheetCost=bigSheetArea*effectivePrice*discount;
-  const theoreticalUnit=bigSheetCost/sheetCountPerBoard;
-  const total=Number.isFinite(productionSheets)?bigSheetCost*productionSheets:NaN;
-  const actualUnit=Number.isFinite(total)?total/qtyInt:NaN;
-  if(lr.assumption)warnings.push(lr.assumption);
-  if(lengthSpliced)warnings.push(`原净长 ${fmt(netL,0)}mm 低于 600mm，已自动按 y=${lengthY} 拼长，拼长后毛长 ${fmt(grossL,0)}mm。`);
-  if(grossL>3500)warnings.push("毛长超过 3500mm，可能超出常规生产范围，请向纸厂确认。");
-  if(!fluteType)warnings.push("未选择楞型，默认不计算 A 楞另加价；若为 A、BA 或 BCA 楞，请选择对应楞型。");
-  if(Number.isFinite(productionSheets)&&productionSheets<20)warnings.push(`生产大张数 ${productionSheets} 张低于厂家文件要求的 20 张，请向纸厂确认是否接单。`);
-  const orderLength=Number.isFinite(productionSheets)?productionSheets*grossL/1000:NaN;
-  if(Number.isFinite(orderLength)&&orderLength<30)warnings.push(`订单长度 ${fixed(orderLength,2)} 米低于厂家文件要求的 30 米，请向纸厂确认是否接单。`);
-  if(smallOrderAdd>0)warnings.push(`单款订单面积 ${fixed(orderArea,2)}㎡ 低于 300㎡，已按厂家文件加 ${fmt(smallOrderAdd,2)} 元/㎡。`);
-  if(!Number.isFinite(qtyInt))warnings.push("未填写数量时，不计算尾数损耗。");
-
-  $("unitCost").textContent=`${money3(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit)} 元/个`;
-  $("quickPrice").textContent=`${fmt(price,2)} 元/㎡`;
-  $("quickRounded").textContent=`${fixed(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit,2)} 元/个`;
-  $("resultSub").textContent=`${lr.label}｜${code}｜${fmt(L,0)}×${fmt(W,0)}×${fmt(H,0)}mm`;
-  const rows=[
-    ["纸质代码",code],
-    ["纸板㎡单价",`${fmt(price,2)} 元/㎡（${priceNote}）`],
-    ["A楞加价",`${fmt(aFluteAdd,2)} 元/㎡`],
-    ["人工工序加价",`${fmt(manualScoreAdd+manualCreaseAdd,2)} 元/㎡`],
-    ["小单加价",`${fmt(smallOrderAdd,2)} 元/㎡`],
-    ["计价㎡单价",`${fmt(effectivePrice,2)} 元/㎡`],
-    ["材料成本折率",String(discount)],
-    ["净宽",`${fmt(netW,0)}mm`],
-    ["净长",`${fmt(netL,0)}mm`],
-    ["半盖宽",`${fmt(half,2)}mm`],
-    ["宽度拼版倍数 x",String(widthX)],
-    ["长度拼版倍数 y",String(lengthY)],
-    ["是否触发拼长",lengthSpliced?"是":"否"],
-    ["实际门幅",`${fmt(best.web,0)}mm`],
-    ["毛宽",`${fixed(grossW,2)}mm`],
-    ["毛长",`${fmt(grossL,0)}mm`],
-    ["单张大纸板可裁数量",`${sheetCountPerBoard} 个`],
-    ["单张大纸板成本",`${fixed(bigSheetCost,2)} 元`],
-    ["理论单个材料成本",`${money3(theoreticalUnit)} 元/个`]
-  ];
-  if(Number.isFinite(qtyInt)){
-    rows.push(
-      ["数量",`${qtyInt} 个`],
-      ["生产大张数",`${productionSheets} 张`],
-      ["实际可裁数量",`${actualCutQty} 个`],
-      ["余量数量",`${surplusQty} 个`],
-      ["订单面积",`${fixed(orderArea,2)}㎡`],
-      ["订单长度",`${fixed(orderLength,2)} 米`],
-      ["总材料成本",`${fixed(total,2)} 元`],
-      ["实际平均单个成本",`${money3(actualUnit)} 元/个`]
-    );
-  }
-  renderRows(rows);
-  renderPlanTable(widthPlans.plans);
-  renderWarnings(warnings);
-
-  const planText=widthPlans.plans.map(p=>`x=${p.x}：需求门幅 ${fmt(p.demand,0)}mm，实际门幅 ${fmt(p.web,0)}mm，毛宽 ${fixed(p.gross,2)}mm，${p.selected?"选中":"候选"}`).join("\n");
-  const detail=[
-    "【核心结果】",
-    `纸质代码：${code}`,
-    `纸板㎡单价：${fmt(price,2)} 元/㎡`,
-    `楞型：${fluteType||"未选择"}`,
-    `A楞加价：${fmt(aFluteAdd,2)} 元/㎡`,
-    `人工分纸压线加价：${fmt(manualScoreAdd,2)} 元/㎡`,
-    `人工碰线加价：${fmt(manualCreaseAdd,2)} 元/㎡`,
-    `小单加价：${fmt(smallOrderAdd,2)} 元/㎡`,
-    `计价㎡单价：${fmt(effectivePrice,2)} 元/㎡`,
-    `材料成本折率：${discount}`,
-    `理论单个材料成本：${money3(theoreticalUnit)} 元/个`,
-    `两位参考：${fixed(Number.isFinite(actualUnit)?actualUnit:theoreticalUnit,2)} 元/个`,
-    `数量：${Number.isFinite(qtyInt)?qtyInt:"未填"}`,
-    `总材料成本：${Number.isFinite(total)?fixed(total,2)+" 元":"未填写数量，不计算尾数损耗"}`,
-    Number.isFinite(actualUnit)?`实际平均单个成本：${money3(actualUnit)} 元/个`:"",
-    "",
-    auto.detail,
-    "",
-    "【尺寸计算】",
-    `层数：${lr.label}`,
-    `W = ${W}，为${lr.odd?"奇数":"偶数"}，n = ${lr.n}（来自计算参数）`,
-    `净宽 = ${W} + ${H} + ${lr.n} = ${fmt(netW,0)}mm`,
-    `净长 = 2 × (${L} + ${W}) + ${lr.glue} = ${fmt(netL,0)}mm`,
-    `半盖宽 = (${W} + ${lr.n}) ÷ 2 = ${fmt(half,2)}mm`,
-    `压线结构 = ${fmt(half,2)} + ${H} + ${fmt(half,2)}`,
-    lr.assumption,
-    "",
-    "【拼版计算】",
-    `纸厂原则：门幅范围 ${limits.min}-${limits.max}mm，每 50mm 一档；优先选择最靠近最大门幅的可行排法；同门幅优先 x 更大。`,
-    planText,
-    `宽度拼版倍数 x = ${widthX}`,
-    `宽度方向一张大纸板可裁 ${widthX} 个箱片`,
-    `需求门幅 = ${widthX} × ${fmt(netW,0)} + ${TRIM} = ${fmt(best.demand,0)}mm`,
-    `实际门幅 = ${fmt(best.web,0)}mm`,
-    `毛宽 = ${fmt(best.web,0)} ÷ ${widthX} = ${fixed(grossW,2)}mm`,
-    `原净长 = ${fmt(netL,0)}mm`,
-    `长度拼版倍数 y = ${lengthY}`,
-    `拼长后毛长 = ${fmt(netL,0)} × ${lengthY} = ${fmt(grossL,0)}mm`,
-    `是否触发拼长：${lengthSpliced?"是":"否"}`,
-    `单张大纸板可裁数量 = ${widthX} × ${lengthY} = ${sheetCountPerBoard} 个`,
-    "",
-    "【计价面积】",
-    `单张大纸板面积 = ${fmt(best.web,0)} × ${fmt(grossL,0)} ÷ 1000000 = ${fixed(bigSheetArea,5)}㎡`,
-    "",
-    "【材料成本】",
-    `计价㎡单价 = ${fmt(price,2)} + ${fmt(aFluteAdd,2)} + ${fmt(manualScoreAdd,2)} + ${fmt(manualCreaseAdd,2)} + ${fmt(smallOrderAdd,2)} = ${fmt(effectivePrice,2)} 元/㎡`,
-    `单张大纸板成本 = ${fixed(bigSheetArea,5)} × ${fmt(effectivePrice,2)} × ${discount} = ${fixed(bigSheetCost,2)} 元`,
-    `理论单个材料成本 = ${fixed(bigSheetCost,2)} ÷ ${sheetCountPerBoard} = ${money3(theoreticalUnit)} 元/个`,
-    Number.isFinite(qtyInt)?`生产大张数 = ceil(${qtyInt} ÷ ${sheetCountPerBoard}) = ${productionSheets} 张`:"未填写数量时，不计算尾数损耗。",
-    Number.isFinite(qtyInt)?`实际可裁数量 = ${productionSheets} × ${sheetCountPerBoard} = ${actualCutQty} 个`:"",
-    Number.isFinite(qtyInt)?`余量数量 = ${actualCutQty} - ${qtyInt} = ${surplusQty} 个`:"",
-    Number.isFinite(qtyInt)?`订单面积 = ${fixed(bigSheetArea,5)} × ${productionSheets} = ${fixed(orderArea,2)}㎡`:"",
-    Number.isFinite(qtyInt)?`订单长度 = ${productionSheets} × ${fmt(grossL,0)} ÷ 1000 = ${fixed(orderLength,2)} 米`:"",
-    Number.isFinite(qtyInt)?`总材料成本 = ${fixed(bigSheetCost,2)} × ${productionSheets} = ${fixed(total,2)} 元`:"",
-    Number.isFinite(qtyInt)?`实际平均单个成本 = ${fixed(total,2)} ÷ ${qtyInt} = ${money3(actualUnit)} 元/个`:"",
-    warnings.length?`\n【风险提示】\n${warnings.join("\n")}`:""
-  ].filter(line=>line!==undefined&&line!==null).join("\n");
-  $("detail").textContent=detail;
-  lastText=detail;
-  saveInputs();
 }
 function saveInputs(){
   INPUT_IDS.forEach(id=>localStorage.setItem("carton_v3_"+id,$(id).value));
@@ -937,6 +1151,7 @@ function renderRulesTable(){
 function renderSettings(){
   const settings=calcSettings();
   $("discountInput").value=settings.discount;
+  $("specialDiscountsInput").value=specialDiscountsToText(settings.specialDiscounts);
   $("glue2Input").value=settings.glue2;
   $("glue3Input").value=settings.glue3;
   $("glue4Input").value=settings.glue4;
@@ -962,6 +1177,7 @@ function renderSettings(){
 function readSettingsForm(){
   return {
     discount:Number($("discountInput").value),
+    specialDiscounts:parseSpecialDiscountText($("specialDiscountsInput").value),
     glue2:Number($("glue2Input").value),
     glue3:Number($("glue3Input").value),
     glue4:Number($("glue4Input").value),
@@ -986,7 +1202,13 @@ function readSettingsForm(){
   };
 }
 function saveSettings(){
-  const settings=readSettingsForm();
+  let settings;
+  try{
+    settings=readSettingsForm();
+  }catch(e){
+    alert("计算参数保存失败："+e.message);
+    return;
+  }
   const valid=validateCalcSettings(settings);
   if(!valid.ok){
     alert("计算参数保存失败："+valid.msg);
@@ -1046,7 +1268,19 @@ function showObj(obj,title){
   prompt(`${title}：可复制查看。`,JSON.stringify(obj,null,2));
 }
 
-$("calcBtn").onclick=calculate;
+$("calcBtn").onclick=()=>{
+  try{
+    calculate();
+  }catch(e){
+    console.error(e);
+    $("unitCost").textContent="—";
+    $("resultSub").textContent="计算发生错误";
+    renderRows([["状态","计算中断"],["错误信息",e&&e.message?e.message:String(e)]]);
+    $("warnings").innerHTML=`<div class="warn bad">程序运行错误：${escapeHtml(e&&e.message?e.message:String(e))}</div>`;
+    $("detail").textContent=`【程序运行错误】\n${e&&e.stack?e.stack:(e&&e.message?e.message:String(e))}`;
+    lastText=$("detail").textContent;
+  }
+};
 $("copyBtn").onclick=async()=>{
   if(!lastText)calculate();
   try{
@@ -1056,10 +1290,10 @@ $("copyBtn").onclick=async()=>{
     alert("复制失败，可手动长按复制完整计算过程。");
   }
 };
-$("demo1").onclick=()=>{$("layers").value="5";$("paperCode").value="N636tN";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
-$("demo2").onclick=()=>{$("layers").value="5";$("paperCode").value="N526N";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
+$("demo1").onclick=()=>{$("paperCode").value="N636tN";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
+$("demo2").onclick=()=>{$("paperCode").value="N526N";$("L").value=300;$("W").value=115;$("H").value=265;$("qty").value="";$("manualPrice").value="";calculate();};
 $("clearBtn").onclick=()=>{
-  ["paperCode","L","W","H","qty","manualPrice"].forEach(id=>$(id).value="");
+  ["paperCode","L","W","H","qty","cutCount","deliverySquarePrice","manualPrice"].forEach(id=>$(id).value="");
   updateModeUI();
   $("unitCost").textContent="—";$("quickPrice").textContent="—";$("quickRounded").textContent="—";$("resultSub").textContent="已清空";
   $("detail").textContent="暂无。";lastText="";
@@ -1115,8 +1349,8 @@ document.addEventListener("click",e=>{
   }
 });
 INPUT_IDS.forEach(id=>{
-  $(id).addEventListener("change",()=>{if(id==="layers")updateModeUI();saveInputs();});
-  $(id).addEventListener("input",saveInputs);
+  $(id).addEventListener("change",()=>{updateModeUI();saveInputs();});
+  $(id).addEventListener("input",()=>{updateModeUI();saveInputs();});
 });
 loadInputs();
 updateModeUI();
